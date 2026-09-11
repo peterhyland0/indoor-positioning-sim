@@ -1,0 +1,37 @@
+---,Key,Value,Unit,Note
+NumFloors,NumFloors,15,count,floors above the lobby (lobby = 0)
+FloorHeight,FloorHeight,3.8,m,slab-to-slab
+SlabThickness,SlabThickness,0.25,m,
+BuildingX,BuildingX,30,m,
+BuildingY,BuildingY,20,m,
+HoistShaft,HoistShaft,"14,8,3,3",m,"x,y,w,d hole in every slab"
+Stairwell,Stairwell,"1,1,2,4",m,"x,y,w,d hole in every slab"
+SlabLossDb,SlabLossDb,18,dB,reinforced concrete @2.4GHz (15-25)
+DrywallLossDb,DrywallLossDb,4,dB,
+GlassLossDb,GlassLossDb,2,dB,
+BodyLossDb,BodyLossDb,8,dB,phone in pocket
+PathLossExponent,PathLossExponent,2.2,,near-LOS open slab
+RssiSigmaDb,RssiSigmaDb,5,dB,
+FadeClampDb,FadeClampDb,6,dB,slow per-pair random walk bound
+FadeStepDb,FadeStepDb,0.5,dB,random-walk step per scan
+PacketLoss,PacketLoss,0.10,prob,
+MaxRangeM,MaxRangeM,40,m,
+RxSensitivityDbm,RxSensitivityDbm,-95,dBm,
+DrywallPercent,DrywallPercent,0,%,floors with partitions
+BeaconFailureRate,BeaconFailureRate,0,prob/hour,
+SitePressure,SitePressure,1013.25,hPa,
+PressurePerMetre,PressurePerMetre,0.1205,hPa/m,1/8.3
+BaroSigmaHpa,BaroSigmaHpa,0.03,hPa,
+WeatherDrift,WeatherDrift,True,bool,
+WeatherStepHpa,WeatherStepHpa,0.005,hPa,random-walk step per second
+GustHpa,GustHpa,0.3,hPa,door slam magnitude
+GustSec,GustSec,5,s,
+HoistSpeed,HoistSpeed,1.0,m/s,
+HoistDwellSec,HoistDwellSec,20,s,
+WalkSpeed,WalkSpeed,1.4,m/s,
+ScanAndroidFg,ScanAndroidFg,1.0,s,
+ScanAndroidBg,ScanAndroidBg,8.0,s,batched
+ScanIosFg,ScanIosFg,1.0,s,ranging
+ScanIosBg,ScanIosBg,0,s,region events only
+Seed,Seed,42,,
+BridgeUrl,BridgeUrl,ws://localhost:8080,,

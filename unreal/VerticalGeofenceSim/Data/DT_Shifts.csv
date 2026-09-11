@@ -1,0 +1,9 @@
+---,WorkerId,Platform,PhoneState,AppState,RouteName,TargetFloor,StartOffsetSec
+w01,w01,Android,InHand,Foreground,Honest,12,0
+w02,w02,iOS,InPocket,Foreground,Honest,12,15
+w03,w03,Android,InPocket,Background,Honest,14,30
+w04,w04,iOS,InPocket,Background,Honest,14,45
+w05,w05,Android,InHand,Foreground,LobbyCheat,12,5
+w06,w06,iOS,InPocket,Foreground,LobbyCheat,9,20
+w07,w07,Android,InPocket,Foreground,FloorHopper,12,60
+w08,w08,iOS,InHand,Foreground,FloorHopper,13,75

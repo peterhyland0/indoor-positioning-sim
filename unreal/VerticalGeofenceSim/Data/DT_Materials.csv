@@ -1,0 +1,5 @@
+---,Tag,LossDb,Colour
+Concrete,Concrete,18.0,"(R=0.55,G=0.55,B=0.55,A=1.0)"
+Drywall,Drywall,4.0,"(R=0.90,G=0.88,B=0.80,A=1.0)"
+Glass,Glass,2.0,"(R=0.60,G=0.80,B=0.95,A=0.5)"
+Open,Open,0.0,"(R=1.0,G=1.0,B=1.0,A=0.0)"
