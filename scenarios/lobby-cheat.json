@@ -1,4 +1,5 @@
-[
-  {"t": 0,   "cmd": "select w05"},
-  {"t": 5,   "cmd": "debug on"}
-]
+{
+  "description": "Two workers clock in from the lobby and linger 10 min before going up - the Anfield Interiors story - alongside two honest ones for contrast.",
+  "workers": ["w01", "w02", "w05", "w06"],
+  "commands": [{"t": 0, "cmd": "select w05"}]
+}

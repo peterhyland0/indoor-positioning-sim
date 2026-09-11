@@ -66,12 +66,23 @@ P=unreal/VerticalGeofenceSim/VerticalGeofenceSim.uproject
 |---|---|
 | `-SimRunSeconds=N` | quit after N seconds of sim time |
 | `-SimSeed=N` | override `DA_SimConfig.Seed` |
-| `-SimScenario=file.json` | `[{"t": sec, "cmd": "..."}, …]` executed at those sim times |
+| `-SimScenario=file.json` | `{"workers": ["w01", …], "commands": [{"t": sec, "cmd": "..."}, …]}` — only the listed shifts are spawned; commands run at those sim times (a bare command array is also accepted) |
+| `-SimSpeed=N` | fast-forward: N fixed steps per timer tick; output is byte-identical to real time |
 | `-SimShotAt=N` | save `Saved/Screenshots/MacEditor/sim_shot.png` at sim time N (use `-windowed`, not `-nullrhi`) |
 | `-SimCamera=follow` | start on the follow camera |
 
 Recordings land in `unreal/VerticalGeofenceSim/Saved/Sessions/<seed>-<timestamp>.jsonl`; copy the
 keepers to `sessions/`. Replay one into an estimator with `node tools/replay-client.mjs`.
+
+The four canonical sessions in `sessions/` were recorded from `scenarios/*.json` with
+`-SimRunSeconds=900 -SimSeed=42 -SimSpeed=20` (15 sim-minutes, ~16 s wall each):
+
+| Session | Crew | What happens |
+|---|---|---|
+| `honest` | w01–w04 | straight up, work, back down — baseline |
+| `lobby-cheat` | w01, w02, w05, w06 | w05/w06 loiter in the lobby 10 min before going up |
+| `beacon-failure` | w01–w04 | F12-A low battery @120 s, dead @300 s, F12-B kicked 8 m @420 s, revived @600 s |
+| `phones-and-weather` | w01, w03, w07, w08 | pocket @60 s, Android background @90 s, storm 180–400 s, door slam on F12 @240 s, stair hoppers |
 
 ## Building
 

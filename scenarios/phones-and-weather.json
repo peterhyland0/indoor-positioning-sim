@@ -1,8 +1,12 @@
-[
-  {"t": 0,   "cmd": "select w03"},
-  {"t": 60,  "cmd": "pocket w01 on"},
-  {"t": 90,  "cmd": "background w01 on"},
-  {"t": 180, "cmd": "storm on"},
-  {"t": 240, "cmd": "slam 12"},
-  {"t": 400, "cmd": "storm off"}
-]
+{
+  "description": "Phone and atmosphere realities: pocket attenuation, Android background batching, a pressure storm, a door slam on F12. Includes the floor hoppers on the stairs.",
+  "workers": ["w01", "w03", "w07", "w08"],
+  "commands": [
+    {"t": 0,   "cmd": "select w03"},
+    {"t": 60,  "cmd": "pocket w01 on"},
+    {"t": 90,  "cmd": "background w01 on"},
+    {"t": 180, "cmd": "storm on"},
+    {"t": 240, "cmd": "slam 12"},
+    {"t": 400, "cmd": "storm off"}
+  ]
+}

@@ -1,3 +1,5 @@
-[
-  {"t": 0, "cmd": "select w01"}
-]
+{
+  "description": "Four honest workers: straight to the hoist, up to their floor, work, back down. Baseline.",
+  "workers": ["w01", "w02", "w03", "w04"],
+  "commands": [{"t": 0, "cmd": "select w01"}]
+}
