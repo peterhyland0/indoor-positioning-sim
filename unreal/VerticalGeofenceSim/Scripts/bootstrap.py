@@ -246,26 +246,33 @@ def frame_cutaway(spec: tg.TowerSpec):
 
 
 # ---------------------------------------------------------------- data tables
+# Row structs are native (Source/VerticalGeofenceSim/Public/SimTypes.h); the module must be built.
 CSV_TO_STRUCT = {
-    "DT_BeaconLayout": "S_BeaconRow",
-    "DT_Materials": "S_MaterialRow",
-    "DT_Shifts": "S_ShiftRow",
-    "DT_Routes": "S_RouteRow",
-    "DT_Waypoints": "S_WaypointRow",
-    "DT_SimConfigDefaults": "S_ConfigRow",
+    "DT_BeaconLayout": "BeaconRow",
+    "DT_Materials": "MaterialRow",
+    "DT_Shifts": "ShiftRow",
+    "DT_Routes": "RouteRow",
+    "DT_Waypoints": "WaypointRow",
+    "DT_SimConfigDefaults": "ConfigRow",
 }
+
+# Hand-made Blueprint enums/structs from before the C++ switch; superseded by SimTypes.h.
+LEGACY_ASSETS = [f"/Game/Data/{n}" for n in (
+    "S_BeaconRow", "S_MaterialRow", "S_ShiftRow", "S_RouteRow", "S_WaypointRow", "S_ConfigRow",
+    "S_Scan", "S_RegionEvent",
+    "E_Platform", "E_PhoneState", "E_AppState", "E_RouteSegment", "E_BeaconState",
+)]
 
 
 def import_data_tables():
     tools = unreal.AssetToolsHelpers.get_asset_tools()
     done, skipped = [], []
     for dt_name, struct_name in CSV_TO_STRUCT.items():
-        struct_path = f"/Game/Data/{struct_name}"
+        struct_cls = getattr(unreal, struct_name, None)
         csv_path = os.path.join(DATA_DIR, f"{dt_name}.csv")
-        if not eal.does_asset_exist(struct_path):
-            skipped.append(f"{dt_name} (needs {struct_path})")
+        if struct_cls is None:
+            skipped.append(f"{dt_name} (unreal.{struct_name} missing - is the C++ module built?)")
             continue
-        row_struct = unreal.load_asset(struct_path)
         task = unreal.AssetImportTask()
         task.set_editor_property("filename", csv_path)
         task.set_editor_property("destination_path", "/Game/Data")
@@ -275,12 +282,41 @@ def import_data_tables():
         task.set_editor_property("save", True)
         factory = unreal.CSVImportFactory()
         settings = unreal.CSVImportSettings()
-        settings.set_editor_property("import_row_struct", row_struct)
+        settings.set_editor_property("import_row_struct", struct_cls.static_struct())
         factory.set_editor_property("automated_import_settings", settings)
         task.set_editor_property("factory", factory)
         tools.import_asset_tasks([task])
         done.append(dt_name)
     log(f"data tables imported: {done or 'none'}; skipped: {skipped or 'none'}")
+
+
+def retire_legacy_assets():
+    removed = []
+    for path in LEGACY_ASSETS:
+        if eal.does_asset_exist(path):
+            if eal.delete_asset(path):
+                removed.append(path.rsplit("/", 1)[-1])
+            else:
+                log(f"could not delete {path} (still referenced?)")
+    if removed:
+        log(f"retired legacy Blueprint types: {removed}")
+
+
+def make_sim_config():
+    """Content/Sim/Bridge/DA_SimConfig: the one USimConfig instance the game instance points at."""
+    path = "/Game/Sim/Bridge/DA_SimConfig"
+    if eal.does_asset_exist(path):
+        log("DA_SimConfig exists")
+        return
+    if not hasattr(unreal, "SimConfig"):
+        log("unreal.SimConfig missing - C++ module not built; DA_SimConfig not created")
+        return
+    factory = unreal.DataAssetFactory()
+    factory.set_editor_property("data_asset_class", unreal.SimConfig)
+    tools = unreal.AssetToolsHelpers.get_asset_tools()
+    asset = tools.create_asset("DA_SimConfig", "/Game/Sim/Bridge", unreal.SimConfig, factory)
+    eal.save_asset(path)
+    log(f"created {path}" if asset else "DA_SimConfig creation failed")
 
 
 # ---------------------------------------------------------------- main
@@ -296,6 +332,8 @@ def main():
     level_ss.save_current_level()
     frame_cutaway(spec)
     import_data_tables()
+    retire_legacy_assets()
+    make_sim_config()
     log("done")
 
 
