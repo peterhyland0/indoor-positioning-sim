@@ -97,14 +97,15 @@ def slab_pieces(spec: TowerSpec, floor: int):
 
 
 def shaft_walls(spec: TowerSpec):
-    """Thin walls around the hoist shaft, full height. Tagged Open so they cost 0 dB (it's a cage)."""
+    """Thin walls on three sides of the hoist shaft, full height. Tagged Open so they cost 0 dB (it's a
+    cage). The south face (towards the cutaway camera) is left open so riders stay visible."""
     h = spec.num_floors * spec.floor_height + spec.floor_height
     s = spec.hoist_shaft
     t = 0.05
     return [
         Box("ShaftWall_W", s.x - t / 2, s.y + s.d / 2, h / 2, t, s.d, h, ("ShaftWall", "Open"), "Open"),
         Box("ShaftWall_E", s.x2 + t / 2, s.y + s.d / 2, h / 2, t, s.d, h, ("ShaftWall", "Open"), "Open"),
-        Box("ShaftWall_S", s.x + s.w / 2, s.y - t / 2, h / 2, s.w, t, h, ("ShaftWall", "Open"), "Open"),
+        Box("ShaftWall_N", s.x + s.w / 2, s.y2 + t / 2, h / 2, s.w, t, h, ("ShaftWall", "Open"), "Open"),
     ]
 
 

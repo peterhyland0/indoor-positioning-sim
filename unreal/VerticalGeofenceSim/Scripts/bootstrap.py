@@ -26,6 +26,7 @@ import tower_geometry as tg  # noqa: E402
 import unreal  # noqa: E402
 
 M_TO_CM = 100.0
+# NOTE: unreal.Rotator(roll, pitch, yaw) - positional order differs from C++ FRotator(Pitch, Yaw, Roll); always use keywords.
 PROJECT_DIR = os.path.abspath(os.path.join(HERE, ".."))
 DATA_DIR = os.path.join(PROJECT_DIR, "Data")
 
@@ -58,8 +59,9 @@ def make_folders():
 # ---------------------------------------------------------------- materials
 def make_material(name, rgb, emissive=0.0):
     path = f"/Game/Sim/Materials/{name}"
-    if eal.does_asset_exist(path):
-        return unreal.load_asset(path)
+    existing = unreal.load_asset(path)  # load_asset is reliable even during PIE; never overwrite
+    if existing:
+        return existing
     factory = unreal.MaterialFactoryNew()
     tools = unreal.AssetToolsHelpers.get_asset_tools()
     mat = tools.create_asset(name, "/Game/Sim/Materials", unreal.Material, factory)
@@ -127,7 +129,7 @@ def spawn_box(box: tg.Box, mesh, mat, profile="RadioBlocker", folder="Tower"):
 
 def spawn_text(text, pos_m, size=120.0, folder="Tower/Labels", color=(1, 1, 1)):
     loc = unreal.Vector(pos_m[0] * M_TO_CM, pos_m[1] * M_TO_CM, pos_m[2] * M_TO_CM)
-    actor = actor_ss.spawn_actor_from_class(unreal.TextRenderActor, loc, unreal.Rotator(0, -90, 0))
+    actor = actor_ss.spawn_actor_from_class(unreal.TextRenderActor, loc, unreal.Rotator(roll=0, pitch=0, yaw=-90))
     actor.set_actor_label(f"Label_{text}")
     actor.set_folder_path(folder)
     trc = actor.text_render
@@ -181,7 +183,7 @@ def build_extras(spec: tg.TowerSpec, mats):
     # Cutaway camera: south of the building looking north at the open face, framing all floors.
     h = (spec.num_floors + 1) * spec.floor_height
     cam_loc = unreal.Vector(spec.building_x / 2 * M_TO_CM, -1.6 * h * M_TO_CM, h / 2 * M_TO_CM)
-    cam = actor_ss.spawn_actor_from_class(unreal.CameraActor, cam_loc, unreal.Rotator(0, 90, 0))
+    cam = actor_ss.spawn_actor_from_class(unreal.CameraActor, cam_loc, unreal.Rotator(roll=0, pitch=0, yaw=90))
     cam.set_actor_label("Cam_Cutaway")
     cam.set_folder_path("Tower/Cameras")
     cam.set_editor_property("tags", [unreal.Name("CutawayCamera"), unreal.Name(GEN_TAG)])
@@ -192,7 +194,7 @@ def build_extras(spec: tg.TowerSpec, mats):
 
     # Light + sky so the grey boxes are visible. Both MOVABLE: fully dynamic lighting, no lightmap
     # build, no "LIGHTING NEEDS TO BE REBUILT" banner.
-    sun = actor_ss.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, h * M_TO_CM), unreal.Rotator(-50, 30, 0))
+    sun = actor_ss.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, h * M_TO_CM), unreal.Rotator(roll=0, pitch=-50, yaw=30))
     sun.set_actor_label("Sun")
     sun.set_folder_path("Tower/Lighting")
     sun.set_editor_property("tags", [unreal.Name(GEN_TAG)])
@@ -248,7 +250,7 @@ def frame_cutaway(spec: tg.TowerSpec):
     h = (spec.num_floors + 1) * spec.floor_height
     loc = unreal.Vector(spec.building_x / 2 * M_TO_CM, -1.6 * h * M_TO_CM, h / 2 * M_TO_CM)
     try:
-        unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).set_level_viewport_camera_info(loc, unreal.Rotator(0, 90, 0))
+        unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).set_level_viewport_camera_info(loc, unreal.Rotator(roll=0, pitch=0, yaw=90))
         log("viewport framed on the cutaway")
     except Exception as e:  # noqa: BLE001
         log(f"viewport not framed (headless?): {e}")
@@ -314,7 +316,7 @@ def retire_legacy_assets():
 def make_sim_config():
     """Content/Sim/Bridge/DA_SimConfig: the one USimConfig instance the game instance points at."""
     path = "/Game/Sim/Bridge/DA_SimConfig"
-    if eal.does_asset_exist(path):
+    if unreal.load_asset(path):
         log("DA_SimConfig exists")
         return
     if not hasattr(unreal, "SimConfig"):
@@ -330,6 +332,12 @@ def make_sim_config():
 
 # ---------------------------------------------------------------- main
 def main():
+    try:
+        if unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).is_in_play_in_editor():
+            log("STOP Play-In-Editor first (red square in the toolbar), then rerun. Nothing changed.")
+            return
+    except Exception:  # noqa: BLE001
+        pass
     spec = tg.TowerSpec()
     make_folders()
     mats = make_materials()
