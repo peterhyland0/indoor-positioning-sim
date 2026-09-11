@@ -1,0 +1,4 @@
+{"v":1,"type":"session","seed":1,"floorHeight":3.8,"numFloors":3,"config":{},"beacons":[{"id":"F01-A","floor":1,"x":14,"y":9.5,"z":5.3,"txPowerDbm":-59},{"id":"F02-A","floor":2,"x":14,"y":9.5,"z":9.1,"txPowerDbm":-59}],"workers":[{"id":"w01","platform":"android","route":"Honest"}]}
+{"v":1,"type":"scan","t":0.0,"worker":"w01","platform":"android","appState":"fg","phoneState":"inHand","scans":[{"b":"F01-A","rssi":-66},{"b":"F02-A","rssi":-84}],"regionEvents":[],"pressure":1012.79,"refPressure":1013.25,"truth":{"floor":1,"onHoist":false,"z":3.8}}
+{"v":1,"type":"event","t":0.5,"name":"beaconKilled","payload":{"b":"F01-A"}}
+{"v":1,"type":"scan","t":1.0,"worker":"w01","platform":"android","appState":"fg","phoneState":"inHand","scans":[{"b":"F02-A","rssi":-83}],"regionEvents":[],"pressure":1012.80,"refPressure":1013.26,"truth":{"floor":1,"onHoist":false,"z":3.8}}

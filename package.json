@@ -1,0 +1,14 @@
+{
+  "name": "indoor-positioning-sim",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Vertical geofencing simulator: Unreal world + sensor sim, TypeScript estimator/dashboard",
+  "scripts": {
+    "echo": "node tools/echo-server.mjs",
+    "replay": "node tools/replay-client.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
