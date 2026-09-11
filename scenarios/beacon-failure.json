@@ -1,0 +1,7 @@
+[
+  {"t": 0,   "cmd": "select w01"},
+  {"t": 120, "cmd": "battery F12-A 0.1"},
+  {"t": 300, "cmd": "killbeacon F12-A"},
+  {"t": 420, "cmd": "nudge F12-B 8"},
+  {"t": 600, "cmd": "revivebeacon F12-A"}
+]

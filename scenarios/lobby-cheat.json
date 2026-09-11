@@ -1,0 +1,4 @@
+[
+  {"t": 0,   "cmd": "select w05"},
+  {"t": 5,   "cmd": "debug on"}
+]
