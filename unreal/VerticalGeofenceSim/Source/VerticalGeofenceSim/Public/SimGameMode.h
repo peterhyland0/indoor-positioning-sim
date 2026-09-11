@@ -23,9 +23,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Sim") void UseFreeCamera();
 	/** Chase camera on the selected worker (Tab cycles). */
 	UFUNCTION(BlueprintCallable, Category = "Sim") void UseFollowCamera();
+	UFUNCTION(BlueprintCallable, Category = "Sim") void TogglePanel();
 
 private:
 	UPROPERTY() TObjectPtr<class ACameraActor> FollowCam;
+	TSharedPtr<class SSimPanel> Panel;
+	TSharedPtr<class SWidget> PanelHost;
 	bool bFollowSelected = false;
 	ASimBuilding* Building() const;
 	void OnTogglePause();

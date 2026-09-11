@@ -10,6 +10,7 @@ public class VerticalGeofenceSim : ModuleRules
 		{
 			"Core", "CoreUObject", "Engine", "InputCore",
 			"WebSockets", "Json", "JsonUtilities",
+			"Slate", "SlateCore",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

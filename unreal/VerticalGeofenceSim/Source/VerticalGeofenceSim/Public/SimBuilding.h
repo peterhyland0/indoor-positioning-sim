@@ -48,6 +48,17 @@ public:
 	float ReadReferencePressure() const;
 	float GustOffsetFor(int32 Floor) const;
 
+	// ---- commands (console "Sim <cmd>", scenario files, the on-screen panel) --------------------
+	/**
+	 * Execute one sabotage/control command. Returns false (with a log line) if not understood.
+	 *   killbeacon <id> | revivebeacon <id> | battery <id> <0-1> | nudge <id> <metres>
+	 *   storm on|off | slam <floor> | pause | resume | debug on|off
+	 *   pocket <worker> on|off | background <worker> on|off | select <worker> | list
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Sim") bool RunCommand(const FString& Command);
+	/** Load a JSON array of {"t": seconds, "cmd": "..."} to run at those sim times. */
+	UFUNCTION(BlueprintCallable, Category = "Sim") bool LoadScenario(const FString& JsonPath);
+
 	// ---- controls (HUD / sabotage panel) ---------------------------------------------------
 	UFUNCTION(BlueprintCallable, Category = "Sim") void TogglePause();
 	UFUNCTION(BlueprintCallable, Category = "Sim") void ToggleDebugTraces();
@@ -79,4 +90,8 @@ private:
 	float GustUntil = 0.f;
 	float RunSecondsLimit = 0.f;
 	float ShotAt = 0.f;
+
+	struct FScheduledCommand { float T; FString Cmd; };
+	TArray<FScheduledCommand> Scenario;
+	int32 NextScenarioIndex = 0;
 };

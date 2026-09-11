@@ -19,6 +19,10 @@
 #include "Camera/PlayerCameraManager.h"
 #include "Misc/Parse.h"
 #include "GenericPlatform/GenericPlatformMisc.h"
+#include "Misc/FileHelper.h"
+#include "Dom/JsonObject.h"
+#include "Serialization/JsonSerializer.h"
+#include "HAL/IConsoleManager.h"
 
 namespace
 {
@@ -60,6 +64,11 @@ void ASimBuilding::BeginPlay()
 	}
 	FParse::Value(FCommandLine::Get(), TEXT("SimRunSeconds="), RunSecondsLimit);
 	FParse::Value(FCommandLine::Get(), TEXT("SimShotAt="), ShotAt);
+	FString ScenarioPath;
+	if (FParse::Value(FCommandLine::Get(), TEXT("SimScenario="), ScenarioPath))
+	{
+		LoadScenario(ScenarioPath);
+	}
 
 	SpawnFixtures();
 	SpawnBeacons();
@@ -172,6 +181,10 @@ void ASimBuilding::FixedStep()
 	const float Dt = Config->StepSeconds;
 	Config->SimTime += Dt;
 	Config->StepWeather(Dt);
+	while (NextScenarioIndex < Scenario.Num() && Scenario[NextScenarioIndex].T <= Config->SimTime)
+	{
+		RunCommand(Scenario[NextScenarioIndex++].Cmd);
+	}
 	if (Hoist)
 	{
 		Hoist->Step(Dt, Config);
@@ -185,7 +198,7 @@ void ASimBuilding::FixedStep()
 	if (ShotAt > 0.f && Config->SimTime >= ShotAt)
 	{
 		ShotAt = 0.f;
-		FScreenshotRequest::RequestScreenshot(TEXT("sim_shot"), false, false);
+		FScreenshotRequest::RequestScreenshot(TEXT("sim_shot"), true, false);
 		if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 		{
 			const AActor* VT = PC->GetViewTarget();
@@ -357,3 +370,97 @@ void ASimBuilding::SetStorm(bool bOn)
 		S->GetBridge()->SendEvent(bOn ? TEXT("stormStart") : TEXT("stormStop"));
 	}
 }
+
+// ---------------------------------------------------------------- commands
+
+bool ASimBuilding::RunCommand(const FString& Command)
+{
+	TArray<FString> Args;
+	Command.TrimStartAndEnd().ParseIntoArrayWS(Args);
+	if (Args.Num() == 0 || !Config)
+	{
+		return false;
+	}
+	const FString Verb = Args[0].ToLower();
+	auto Arg = [&Args](int32 i) { return Args.IsValidIndex(i) ? Args[i] : FString(); };
+	auto OnOff = [&Arg](int32 i) { const FString V = Arg(i).ToLower(); return V != TEXT("off") && V != TEXT("0") && V != TEXT("false"); };
+	auto BeaconArg = [this, &Arg](int32 i) -> ASimBeacon* {
+		ASimBeacon* B = FindBeacon(FName(*Arg(i)));
+		if (!B) UE_LOG(LogSim, Warning, TEXT("no beacon '%s'"), *Arg(i));
+		return B;
+	};
+	auto WorkerArg = [this, &Arg](int32 i) -> ASimWorker* {
+		ASimWorker* W = FindWorker(FName(*Arg(i)));
+		if (!W) UE_LOG(LogSim, Warning, TEXT("no worker '%s'"), *Arg(i));
+		return W;
+	};
+	USimBridge* Br = USimSubsystem::Get(this) ? USimSubsystem::Get(this)->GetBridge() : nullptr;
+
+	UE_LOG(LogSim, Log, TEXT("cmd @%.1f: %s"), Config->SimTime, *Command);
+	bool bOk = true;
+	if (Verb == TEXT("killbeacon"))        { if (ASimBeacon* B = BeaconArg(1)) B->Kill(); else bOk = false; }
+	else if (Verb == TEXT("revivebeacon")) { if (ASimBeacon* B = BeaconArg(1)) B->Revive(); else bOk = false; }
+	else if (Verb == TEXT("battery"))      { if (ASimBeacon* B = BeaconArg(1)) B->SetBattery(FCString::Atof(*Arg(2))); else bOk = false; }
+	else if (Verb == TEXT("nudge"))        { if (ASimBeacon* B = BeaconArg(1)) B->Nudge(Args.IsValidIndex(2) ? FCString::Atof(*Arg(2)) : 5.f); else bOk = false; }
+	else if (Verb == TEXT("storm"))        { SetStorm(OnOff(1)); }
+	else if (Verb == TEXT("slam"))         { DoorSlam(FCString::Atoi(*Arg(1))); }
+	else if (Verb == TEXT("pause"))        { if (!Config->bPaused) TogglePause(); }
+	else if (Verb == TEXT("resume"))       { if (Config->bPaused) TogglePause(); }
+	else if (Verb == TEXT("debug"))        { Config->bDebugTraces = OnOff(1); }
+	else if (Verb == TEXT("pocket"))       { if (ASimWorker* W = WorkerArg(1)) { W->SetPhoneState(OnOff(2) ? EPhoneState::InPocket : EPhoneState::InHand); if (Br) Br->SendEvent(TEXT("workerPhoneState"), FString::Printf(TEXT("{\"worker\":\"%s\",\"phoneState\":\"%s\"}"), *W->WorkerId.ToString(), OnOff(2) ? TEXT("inPocket") : TEXT("inHand"))); } else bOk = false; }
+	else if (Verb == TEXT("background"))   { if (ASimWorker* W = WorkerArg(1)) { W->SetAppState(OnOff(2) ? EAppState::Background : EAppState::Foreground); if (Br) Br->SendEvent(TEXT("workerAppState"), FString::Printf(TEXT("{\"worker\":\"%s\",\"appState\":\"%s\"}"), *W->WorkerId.ToString(), OnOff(2) ? TEXT("bg") : TEXT("fg"))); } else bOk = false; }
+	else if (Verb == TEXT("select"))       { if (ASimWorker* W = WorkerArg(1)) SelectedWorker = W; else bOk = false; }
+	else if (Verb == TEXT("list"))
+	{
+		for (const ASimBeacon* B : Beacons) UE_LOG(LogSim, Log, TEXT("  beacon %s F%d %s battery %.2f"), *B->BeaconId.ToString(), B->Floor, B->bAlive ? TEXT("alive") : TEXT("dead"), B->Battery);
+		for (const ASimWorker* W : Workers) UE_LOG(LogSim, Log, TEXT("  worker %s F%d %s"), *W->WorkerId.ToString(), W->TruthFloor, *W->RouteName.ToString());
+	}
+	else
+	{
+		UE_LOG(LogSim, Warning, TEXT("unknown command '%s'"), *Verb);
+		bOk = false;
+	}
+	return bOk;
+}
+
+bool ASimBuilding::LoadScenario(const FString& JsonPath)
+{
+	FString Text;
+	if (!FFileHelper::LoadFileToString(Text, *JsonPath))
+	{
+		UE_LOG(LogSim, Error, TEXT("scenario file not found: %s"), *JsonPath);
+		return false;
+	}
+	TArray<TSharedPtr<FJsonValue>> Items;
+	if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Items))
+	{
+		UE_LOG(LogSim, Error, TEXT("scenario file is not a JSON array: %s"), *JsonPath);
+		return false;
+	}
+	Scenario.Reset();
+	for (const TSharedPtr<FJsonValue>& V : Items)
+	{
+		const TSharedPtr<FJsonObject>* Obj;
+		if (V->TryGetObject(Obj))
+		{
+			Scenario.Add({static_cast<float>((*Obj)->GetNumberField(TEXT("t"))), (*Obj)->GetStringField(TEXT("cmd"))});
+		}
+	}
+	Scenario.Sort([](const FScheduledCommand& A, const FScheduledCommand& B) { return A.T < B.T; });
+	NextScenarioIndex = 0;
+	UE_LOG(LogSim, Log, TEXT("scenario loaded: %d commands from %s"), Scenario.Num(), *JsonPath);
+	return true;
+}
+
+// Console: `Sim killbeacon F12-A`, `Sim storm on`, ... (PIE console or -ExecCmds).
+static FAutoConsoleCommandWithWorldAndArgs GSimConsoleCommand(
+	TEXT("Sim"),
+	TEXT("Run a simulation command. See ASimBuilding::RunCommand for the list."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		ASimBuilding* B = Cast<ASimBuilding>(UGameplayStatics::GetActorOfClass(World, ASimBuilding::StaticClass()));
+		if (B)
+		{
+			B->RunCommand(FString::Join(Args, TEXT(" ")));
+		}
+	}));

@@ -14,6 +14,10 @@
 #include "Engine/Engine.h"
 #include "Components/InputComponent.h"
 #include "Misc/CommandLine.h"
+#include "SimPanel.h"
+#include "Widgets/SOverlay.h"
+#include "Engine/GameViewportClient.h"
+#include "TimerManager.h"
 #include "Misc/Parse.h"
 
 // ---------------------------------------------------------------- controller
@@ -27,6 +31,22 @@ void ASimPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	bShowMouseCursor = true;
+	// Clicks go to the panel, keys keep going to the game.
+	FInputModeGameAndUI Mode;
+	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	Mode.SetHideCursorDuringCapture(false);
+	SetInputMode(Mode);
+	if (GEngine && GEngine->GameViewport)
+	{
+		// The building spawns its actors in its own BeginPlay; build the panel on the next tick so the lists are full.
+		GetWorldTimerManager().SetTimerForNextTick([this]()
+		{
+			if (!GEngine || !GEngine->GameViewport) return;
+			Panel = SNew(SSimPanel).Building(Building());
+			PanelHost = SNew(SOverlay) + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(16.f) [ Panel.ToSharedRef() ];
+			GEngine->GameViewport->AddViewportWidgetContent(PanelHost.ToSharedRef(), 10);
+		});
+	}
 	FString Cam;
 	if (FParse::Value(FCommandLine::Get(), TEXT("SimCamera="), Cam) && Cam.Equals(TEXT("follow"), ESearchCase::IgnoreCase))
 	{
@@ -52,6 +72,15 @@ void ASimPlayerController::SetupInputComponent()
 	InputComponent->BindAction(TEXT("Sim_CutawayCamera"), IE_Pressed, this, &ASimPlayerController::UseCutawayCamera);
 	InputComponent->BindAction(TEXT("Sim_FreeCamera"), IE_Pressed, this, &ASimPlayerController::UseFreeCamera);
 	InputComponent->BindAction(TEXT("Sim_FollowCamera"), IE_Pressed, this, &ASimPlayerController::UseFollowCamera);
+	InputComponent->BindAction(TEXT("Sim_TogglePanel"), IE_Pressed, this, &ASimPlayerController::TogglePanel);
+}
+
+void ASimPlayerController::TogglePanel()
+{
+	if (PanelHost.IsValid())
+	{
+		PanelHost->SetVisibility(PanelHost->GetVisibility() == EVisibility::Visible ? EVisibility::Collapsed : EVisibility::Visible);
+	}
 }
 
 void ASimPlayerController::UseFollowCamera()
@@ -174,7 +203,7 @@ void ASimHUD::DrawHUD()
 		}
 		Line(FString::Printf(TEXT("  last scan: %s"), Scans.IsEmpty() ? TEXT("(nothing heard)") : *Scans));
 	}
-	Line(TEXT("Space pause   R reset   T debug traces   Tab next worker   1 cutaway   2 free cam   3 follow selected"), FColor(160, 160, 160));
+	Line(TEXT("Space pause   R reset   T traces   Tab next worker   1 cutaway   2 free cam   3 follow   P panel"), FColor(160, 160, 160));
 }
 
 // ---------------------------------------------------------------- game mode
