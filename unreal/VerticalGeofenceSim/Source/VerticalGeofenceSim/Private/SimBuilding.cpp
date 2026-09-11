@@ -64,6 +64,8 @@ void ASimBuilding::BeginPlay()
 	}
 	FParse::Value(FCommandLine::Get(), TEXT("SimRunSeconds="), RunSecondsLimit);
 	FParse::Value(FCommandLine::Get(), TEXT("SimShotAt="), ShotAt);
+	FParse::Value(FCommandLine::Get(), TEXT("SimSpeed="), StepsPerTick);
+	StepsPerTick = FMath::Clamp(StepsPerTick, 1, 200);
 	FString ScenarioPath;
 	if (FParse::Value(FCommandLine::Get(), TEXT("SimScenario="), ScenarioPath))
 	{
@@ -159,6 +161,10 @@ void ASimBuilding::SpawnWorkers()
 	int32 i = 0;
 	for (const FShiftRow* Row : Rows)
 	{
+		if (WorkerFilter.Num() > 0 && !WorkerFilter.Contains(Row->WorkerId))
+		{
+			continue;
+		}
 		const FVector Jitter(FMath::Cos(i * 1.3f) * 80.f, FMath::Sin(i * 1.3f) * 80.f, 0.f);
 		ASimWorker* W = GetWorld()->SpawnActor<ASimWorker>(Entrance + Jitter, FRotator::ZeroRotator);
 		W->InitFromShift(*Row, this, Hoist);
@@ -173,6 +179,14 @@ void ASimBuilding::SpawnWorkers()
 // ---------------------------------------------------------------- stepping
 
 void ASimBuilding::FixedStep()
+{
+	for (int32 i = 0; i < StepsPerTick && StepTimer.IsValid(); ++i)
+	{
+		SingleStep();
+	}
+}
+
+void ASimBuilding::SingleStep()
 {
 	if (!Config || Config->bPaused)
 	{
@@ -431,10 +445,29 @@ bool ASimBuilding::LoadScenario(const FString& JsonPath)
 		UE_LOG(LogSim, Error, TEXT("scenario file not found: %s"), *JsonPath);
 		return false;
 	}
+	// Either a bare array of commands, or {"workers": ["w01", ...], "commands": [...]}.
 	TArray<TSharedPtr<FJsonValue>> Items;
-	if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Items))
+	TSharedPtr<FJsonObject> Root;
+	if (FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Root) && Root.IsValid())
 	{
-		UE_LOG(LogSim, Error, TEXT("scenario file is not a JSON array: %s"), *JsonPath);
+		const TArray<TSharedPtr<FJsonValue>>* WorkerList;
+		if (Root->TryGetArrayField(TEXT("workers"), WorkerList))
+		{
+			WorkerFilter.Reset();
+			for (const TSharedPtr<FJsonValue>& V : *WorkerList)
+			{
+				WorkerFilter.Add(FName(*V->AsString()));
+			}
+		}
+		const TArray<TSharedPtr<FJsonValue>>* Cmds;
+		if (Root->TryGetArrayField(TEXT("commands"), Cmds))
+		{
+			Items = *Cmds;
+		}
+	}
+	else if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Items))
+	{
+		UE_LOG(LogSim, Error, TEXT("scenario file is neither a JSON array nor an object: %s"), *JsonPath);
 		return false;
 	}
 	Scenario.Reset();
@@ -448,7 +481,7 @@ bool ASimBuilding::LoadScenario(const FString& JsonPath)
 	}
 	Scenario.Sort([](const FScheduledCommand& A, const FScheduledCommand& B) { return A.T < B.T; });
 	NextScenarioIndex = 0;
-	UE_LOG(LogSim, Log, TEXT("scenario loaded: %d commands from %s"), Scenario.Num(), *JsonPath);
+	UE_LOG(LogSim, Log, TEXT("scenario loaded: %d commands, %d worker filter entries, from %s"), Scenario.Num(), WorkerFilter.Num(), *JsonPath);
 	return true;
 }
 

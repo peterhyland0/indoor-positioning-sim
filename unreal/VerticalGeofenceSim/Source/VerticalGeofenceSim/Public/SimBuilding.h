@@ -74,6 +74,7 @@ private:
 	void SpawnWorkers();
 	void SpawnFixtures();
 	void FixedStep();
+	void SingleStep();
 
 	UPROPERTY() TObjectPtr<USimConfig> Config;
 	UPROPERTY() TArray<TObjectPtr<ASimBeacon>> Beacons;
@@ -90,8 +91,12 @@ private:
 	float GustUntil = 0.f;
 	float RunSecondsLimit = 0.f;
 	float ShotAt = 0.f;
+	/** -SimSpeed=N: fixed steps per timer tick (headless fast-forward; output is identical). */
+	int32 StepsPerTick = 1;
 
 	struct FScheduledCommand { float T; FString Cmd; };
 	TArray<FScheduledCommand> Scenario;
 	int32 NextScenarioIndex = 0;
+	/** If non-empty, only these shifts are spawned. */
+	TSet<FName> WorkerFilter;
 };
