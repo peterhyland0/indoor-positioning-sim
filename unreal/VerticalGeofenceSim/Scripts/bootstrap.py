@@ -190,19 +190,41 @@ def build_extras(spec: tg.TowerSpec, mats):
     except Exception as e:  # noqa: BLE001
         log(f"camera fov not set: {e}")
 
-    # Light + sky so the grey boxes are visible.
+    # Light + sky so the grey boxes are visible. Both MOVABLE: fully dynamic lighting, no lightmap
+    # build, no "LIGHTING NEEDS TO BE REBUILT" banner.
     sun = actor_ss.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, h * M_TO_CM), unreal.Rotator(-50, 30, 0))
     sun.set_actor_label("Sun")
     sun.set_folder_path("Tower/Lighting")
     sun.set_editor_property("tags", [unreal.Name(GEN_TAG)])
+    try:
+        sun.light_component.set_mobility(unreal.ComponentMobility.MOVABLE)
+        sun.light_component.set_editor_property("intensity", 6.0)
+    except Exception as e:  # noqa: BLE001
+        log(f"sun props not set: {e}")
     sky = actor_ss.spawn_actor_from_class(unreal.SkyLight, unreal.Vector(0, 0, h * M_TO_CM))
     sky.set_actor_label("Sky")
     sky.set_folder_path("Tower/Lighting")
     sky.set_editor_property("tags", [unreal.Name(GEN_TAG)])
     try:
-        sky.light_component.set_editor_property("intensity", 1.0)
-    except Exception:  # noqa: BLE001
-        pass
+        sky.light_component.set_mobility(unreal.ComponentMobility.MOVABLE)
+        sky.light_component.set_editor_property("intensity", 1.5)
+        sky.light_component.set_editor_property("real_time_capture", True)
+    except Exception as e:  # noqa: BLE001
+        log(f"sky light props not set: {e}")
+
+    # A sky for the sky light to capture (without one, real-time capture is black and the scene goes dark).
+    atmo = actor_ss.spawn_actor_from_class(unreal.SkyAtmosphere, unreal.Vector(0, 0, 0))
+    atmo.set_actor_label("SkyAtmosphere")
+    atmo.set_folder_path("Tower/Lighting")
+    atmo.set_editor_property("tags", [unreal.Name(GEN_TAG)])
+
+    # Tell the world there is no precomputed lighting to build.
+    try:
+        world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+        ws = unreal.GameplayStatics.get_actor_of_class(world, unreal.WorldSettings)
+        ws.set_editor_property("force_no_precomputed_lighting", True)
+    except Exception as e:  # noqa: BLE001
+        log(f"world settings not set: {e}")
 
     # PlayerStart in the lobby entrance so PIE has somewhere to put the spectator.
     ps = actor_ss.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(2.0 * M_TO_CM, 18.0 * M_TO_CM, 1.0 * M_TO_CM))
@@ -210,6 +232,17 @@ def build_extras(spec: tg.TowerSpec, mats):
     ps.set_folder_path("Tower/Extras")
     ps.set_editor_property("tags", [unreal.Name(GEN_TAG)])
     log("extras placed (reference station, camera, lights, player start)")
+
+
+def frame_cutaway(spec: tg.TowerSpec):
+    """Point the editor viewport at the open face so the tower is visible immediately."""
+    h = (spec.num_floors + 1) * spec.floor_height
+    loc = unreal.Vector(spec.building_x / 2 * M_TO_CM, -1.6 * h * M_TO_CM, h / 2 * M_TO_CM)
+    try:
+        unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).set_level_viewport_camera_info(loc, unreal.Rotator(0, 90, 0))
+        log("viewport framed on the cutaway")
+    except Exception as e:  # noqa: BLE001
+        log(f"viewport not framed (headless?): {e}")
 
 
 # ---------------------------------------------------------------- data tables
@@ -261,6 +294,7 @@ def main():
     build_beacon_markers(spec, mats)
     build_extras(spec, mats)
     level_ss.save_current_level()
+    frame_cutaway(spec)
     import_data_tables()
     log("done")
 
