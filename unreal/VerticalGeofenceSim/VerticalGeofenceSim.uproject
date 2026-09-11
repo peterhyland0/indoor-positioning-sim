@@ -4,11 +4,40 @@
 	"Category": "",
 	"Description": "Vertical geofencing sensor simulator: grey-box high-rise, BLE beacons, workers, hoist. Streams BLE scans + barometer over WebSocket and records JSONL.",
 	"Plugins": [
-		{ "Name": "JsonBlueprintUtilities", "Enabled": true },
-		{ "Name": "HTTPBlueprint", "Enabled": true },
-		{ "Name": "PythonScriptPlugin", "Enabled": true },
-		{ "Name": "EditorScriptingUtilities", "Enabled": true },
-		{ "Name": "ModelingToolsEditorMode", "Enabled": false },
-		{ "Name": "Bridge", "Enabled": false }
+		{
+			"Name": "JsonBlueprintUtilities",
+			"Enabled": true
+		},
+		{
+			"Name": "HTTPBlueprint",
+			"Enabled": true
+		},
+		{
+			"Name": "PythonScriptPlugin",
+			"Enabled": true
+		},
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		},
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": false
+		},
+		{
+			"Name": "Bridge",
+			"Enabled": false
+		}
+	],
+	"Modules": [
+		{
+			"Name": "VerticalGeofenceSim",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject"
+			]
+		}
 	]
 }
