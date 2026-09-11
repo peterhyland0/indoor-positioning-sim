@@ -13,6 +13,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Misc/CommandLine.h"
+#include "Engine/Engine.h"
+#include "UnrealClient.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "Misc/Parse.h"
 #include "GenericPlatform/GenericPlatformMisc.h"
 
@@ -55,6 +59,7 @@ void ASimBuilding::BeginPlay()
 		Config->ResetRun();
 	}
 	FParse::Value(FCommandLine::Get(), TEXT("SimRunSeconds="), RunSecondsLimit);
+	FParse::Value(FCommandLine::Get(), TEXT("SimShotAt="), ShotAt);
 
 	SpawnFixtures();
 	SpawnBeacons();
@@ -176,6 +181,21 @@ void ASimBuilding::FixedStep()
 		W->Step(Dt, Config);
 	}
 	StepCount++;
+
+	if (ShotAt > 0.f && Config->SimTime >= ShotAt)
+	{
+		ShotAt = 0.f;
+		FScreenshotRequest::RequestScreenshot(TEXT("sim_shot"), false, false);
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+		{
+			const AActor* VT = PC->GetViewTarget();
+			const FVector CamLoc = PC->PlayerCameraManager ? PC->PlayerCameraManager->GetCameraLocation() : FVector::ZeroVector;
+			const FRotator CamRot = PC->PlayerCameraManager ? PC->PlayerCameraManager->GetCameraRotation() : FRotator::ZeroRotator;
+			UE_LOG(LogSim, Log, TEXT("screenshot at t=%.1f: view target %s (%s), camera at %s rot %s, fov %.1f"),
+			       Config->SimTime, VT ? *VT->GetName() : TEXT("none"), VT ? *VT->GetClass()->GetName() : TEXT(""),
+			       *CamLoc.ToString(), *CamRot.ToString(), PC->PlayerCameraManager ? PC->PlayerCameraManager->GetFOVAngle() : 0.f);
+		}
+	}
 
 	if (RunSecondsLimit > 0.f && Config->SimTime >= RunSecondsLimit)
 	{

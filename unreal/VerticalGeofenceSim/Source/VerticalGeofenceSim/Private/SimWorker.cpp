@@ -30,16 +30,16 @@ ASimWorker::ASimWorker()
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Mat(TEXT("/Game/Sim/Materials/M_Worker"));
 	if (Cyl.Succeeded()) Body->SetStaticMesh(Cyl.Object);
 	if (Mat.Succeeded()) Body->SetMaterial(0, Mat.Object);
-	Body->SetRelativeScale3D(FVector(0.5f, 0.5f, 1.7f));
+	Body->SetRelativeScale3D(FVector(1.1f, 1.1f, 1.8f)); // oversized on purpose: readable from the cutaway camera ~100 m away
 	Body->SetRelativeLocation(FVector(0.f, 0.f, -5.f));
 	Body->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Body->SetCastShadow(false);
 
 	Label = CreateDefaultSubobject<UTextRenderComponent>(TEXT("Label"));
 	Label->SetupAttachment(Capsule);
-	Label->SetRelativeLocation(FVector(0.f, -40.f, CapsuleHalfHeightCm + 40.f));
+	Label->SetRelativeLocation(FVector(0.f, -70.f, CapsuleHalfHeightCm + 60.f));
 	Label->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // readable from the cutaway camera (looking +Y)
-	Label->SetWorldSize(45.f);
+	Label->SetWorldSize(110.f);
 	Label->SetHorizontalAlignment(EHTA_Center);
 	Label->SetTextRenderColor(FColor::White);
 

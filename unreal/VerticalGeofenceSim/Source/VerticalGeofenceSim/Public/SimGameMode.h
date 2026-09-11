@@ -16,12 +16,17 @@ class VERTICALGEOFENCESIM_API ASimPlayerController : public APlayerController
 
 public:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupInputComponent() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Sim") void UseCutawayCamera();
 	UFUNCTION(BlueprintCallable, Category = "Sim") void UseFreeCamera();
+	/** Chase camera on the selected worker (Tab cycles). */
+	UFUNCTION(BlueprintCallable, Category = "Sim") void UseFollowCamera();
 
 private:
+	UPROPERTY() TObjectPtr<class ACameraActor> FollowCam;
+	bool bFollowSelected = false;
 	ASimBuilding* Building() const;
 	void OnTogglePause();
 	void OnReset();

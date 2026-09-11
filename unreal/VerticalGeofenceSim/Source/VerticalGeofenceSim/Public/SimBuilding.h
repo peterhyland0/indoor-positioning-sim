@@ -78,4 +78,5 @@ private:
 	int32 GustFloor = -1;
 	float GustUntil = 0.f;
 	float RunSecondsLimit = 0.f;
+	float ShotAt = 0.f;
 };

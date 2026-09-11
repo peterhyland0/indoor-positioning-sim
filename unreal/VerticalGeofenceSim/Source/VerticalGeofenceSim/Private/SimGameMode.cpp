@@ -9,9 +9,12 @@
 #include "GameFramework/SpectatorPawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
+#include "Camera/CameraComponent.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Components/InputComponent.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 // ---------------------------------------------------------------- controller
 
@@ -24,7 +27,15 @@ void ASimPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	bShowMouseCursor = true;
-	UseCutawayCamera();
+	FString Cam;
+	if (FParse::Value(FCommandLine::Get(), TEXT("SimCamera="), Cam) && Cam.Equals(TEXT("follow"), ESearchCase::IgnoreCase))
+	{
+		UseFollowCamera();
+	}
+	else
+	{
+		UseCutawayCamera();
+	}
 }
 
 void ASimPlayerController::SetupInputComponent()
@@ -40,20 +51,71 @@ void ASimPlayerController::SetupInputComponent()
 	InputComponent->BindAction(TEXT("Sim_NextWorker"), IE_Pressed, this, &ASimPlayerController::OnNextWorker);
 	InputComponent->BindAction(TEXT("Sim_CutawayCamera"), IE_Pressed, this, &ASimPlayerController::UseCutawayCamera);
 	InputComponent->BindAction(TEXT("Sim_FreeCamera"), IE_Pressed, this, &ASimPlayerController::UseFreeCamera);
+	InputComponent->BindAction(TEXT("Sim_FollowCamera"), IE_Pressed, this, &ASimPlayerController::UseFollowCamera);
+}
+
+void ASimPlayerController::UseFollowCamera()
+{
+	bFollowSelected = true;
+	if (!FollowCam)
+	{
+		FollowCam = GetWorld()->SpawnActor<ACameraActor>();
+		FollowCam->GetCameraComponent()->SetFieldOfView(55.f);
+	}
+	Tick(0.f); // place it before the blend starts
+	SetViewTargetWithBlend(FollowCam, 0.4f);
+}
+
+void ASimPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if (!bFollowSelected || !FollowCam)
+	{
+		return;
+	}
+	ASimBuilding* B = Building();
+	ASimWorker* W = B ? B->GetSelectedWorker() : nullptr;
+	if (!W)
+	{
+		return;
+	}
+	// Sit 14 m south of the worker (the open face), 3 m above, looking at their head.
+	const FVector Head = W->GetActorLocation() + FVector(0.f, 0.f, 80.f);
+	const FVector Want = Head + FVector(0.f, -1400.f, 300.f);
+	const FVector Loc = FMath::VInterpTo(FollowCam->GetActorLocation(), Want, DeltaSeconds, 4.f);
+	FollowCam->SetActorLocation(Loc);
+	FollowCam->SetActorRotation(FRotationMatrix::MakeFromX(Head - Loc).Rotator());
 }
 
 void ASimPlayerController::UseCutawayCamera()
 {
+	bFollowSelected = false;
 	TArray<AActor*> Cams;
 	UGameplayStatics::GetAllActorsWithTag(this, TEXT("CutawayCamera"), Cams);
 	if (Cams.Num() > 0)
 	{
+		// Place and aim the camera from the config so the whole tower fits with the lobby/hoist area
+		// (where most of the action is) closest to the lens. Ignores how the actor was placed.
+		if (ASimBuilding* B = Building())
+		{
+			const USimConfig* C = B->GetConfig();
+			const float H = C ? C->FloorZCm(C->NumFloors + 1) : 6000.f;
+			const FVector Loc(1500.f, -1.62f * H, 0.42f * H);
+			const FVector Target(1500.f, 1000.f, 0.5f * H);
+			Cams[0]->SetActorLocation(Loc);
+			Cams[0]->SetActorRotation(FRotationMatrix::MakeFromX(Target - Loc).Rotator());
+			if (ACameraActor* CamActor = Cast<ACameraActor>(Cams[0]))
+			{
+				CamActor->GetCameraComponent()->SetFieldOfView(62.f);
+			}
+		}
 		SetViewTargetWithBlend(Cams[0], 0.5f);
 	}
 }
 
 void ASimPlayerController::UseFreeCamera()
 {
+	bFollowSelected = false;
 	if (APawn* P = GetPawn())
 	{
 		SetViewTargetWithBlend(P, 0.5f);
@@ -95,8 +157,10 @@ void ASimHUD::DrawHUD()
 	Line(FString::Printf(TEXT("t = %.1f s   seed %d   %s"), C->SimTime, C->Seed, C->bPaused ? TEXT("PAUSED") : TEXT("running")), C->bPaused ? FColor::Yellow : FColor::White);
 	Line(FString::Printf(TEXT("bridge: %s   %d msgs   %s"), Br->IsConnected() ? TEXT("connected") : TEXT("no server (recording only)"), Br->GetMessageCount(), *FPaths::GetCleanFilename(Br->GetLogPath())),
 	     Br->IsConnected() ? FColor::Green : FColor::Orange);
-	Line(FString::Printf(TEXT("weather drift %+.2f hPa   hoist F%d %s"), C->WeatherDriftHpa, B->GetHoist() ? B->GetHoist()->GetCurrentFloor() : -1,
-	     B->GetHoist() ? (B->GetHoist()->GetState() == EHoistState::Moving ? TEXT("moving") : TEXT("stopped")) : TEXT("")));
+	const ASimHoist* Hoist = B->GetHoist();
+	const float HoistZ = Hoist ? Hoist->GetActorLocation().Z + 10.f : 0.f;
+	Line(FString::Printf(TEXT("weather drift %+.2f hPa   hoist at %.1f m (F%d) %s"), C->WeatherDriftHpa, HoistZ / 100.f, C->FloorFromZCm(HoistZ),
+	     Hoist ? (Hoist->GetState() == EHoistState::Moving ? TEXT("moving") : TEXT("stopped")) : TEXT("")));
 	if (ASimWorker* W = B->GetSelectedWorker())
 	{
 		Line(FString::Printf(TEXT("selected %s  truth F%d%s  est %s  %s/%s/%s"), *W->WorkerId.ToString(), W->TruthFloor,
@@ -110,7 +174,7 @@ void ASimHUD::DrawHUD()
 		}
 		Line(FString::Printf(TEXT("  last scan: %s"), Scans.IsEmpty() ? TEXT("(nothing heard)") : *Scans));
 	}
-	Line(TEXT("Space pause  R reset  T debug traces  Tab next worker  1 cutaway  2 free cam"), FColor(160, 160, 160));
+	Line(TEXT("Space pause   R reset   T debug traces   Tab next worker   1 cutaway   2 free cam   3 follow selected"), FColor(160, 160, 160));
 }
 
 // ---------------------------------------------------------------- game mode

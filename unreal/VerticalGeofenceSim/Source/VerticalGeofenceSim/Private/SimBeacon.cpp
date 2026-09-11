@@ -17,7 +17,7 @@ ASimBeacon::ASimBeacon()
 	{
 		Mesh->SetStaticMesh(SphereMesh.Object);
 	}
-	Mesh->SetRelativeScale3D(FVector(0.25f));
+	Mesh->SetRelativeScale3D(FVector(0.45f));
 	Mesh->SetCollisionProfileName(TEXT("RadioTransparent"));
 	Mesh->SetCastShadow(false);
 
