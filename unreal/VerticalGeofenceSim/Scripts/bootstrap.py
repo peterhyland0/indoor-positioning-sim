@@ -226,6 +226,15 @@ def build_extras(spec: tg.TowerSpec, mats):
     except Exception as e:  # noqa: BLE001
         log(f"world settings not set: {e}")
 
+    # The C++ simulation runner. Spawns beacons/workers/hoist at BeginPlay and drives the fixed step.
+    if hasattr(unreal, "SimBuilding"):
+        runner = actor_ss.spawn_actor_from_class(unreal.SimBuilding, unreal.Vector(0, 0, 0))
+        runner.set_actor_label("SimBuilding")
+        runner.set_folder_path("Sim")
+        runner.set_editor_property("tags", [unreal.Name("SimBuilding"), unreal.Name(GEN_TAG)])
+    else:
+        log("unreal.SimBuilding missing - C++ module not built; runner not placed")
+
     # PlayerStart in the lobby entrance so PIE has somewhere to put the spectator.
     ps = actor_ss.spawn_actor_from_class(unreal.PlayerStart, unreal.Vector(2.0 * M_TO_CM, 18.0 * M_TO_CM, 1.0 * M_TO_CM))
     ps.set_actor_label("PlayerStart_Lobby")
