@@ -19,6 +19,12 @@ public:
 	/** Slab-to-slab, metres. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building") float FloorHeight = 3.8f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building") float SlabThickness = 0.25f;
+	/** Hoist shaft hole in every slab: x, y, width, depth (metres). Must match Scripts/tower_geometry.py. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building") FVector4 HoistShaft = FVector4(14.f, 8.f, 3.f, 3.f);
+	/** Stairwell hole in every slab: x, y, width, depth (metres). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building") FVector4 Stairwell = FVector4(1.f, 1.f, 2.f, 4.f);
+	/** Fixed simulation step, seconds. Everything advances in these increments. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building") float StepSeconds = 0.05f;
 
 	// ---- RF model ---------------------------------------------------------------------------
 	/** Reinforced concrete slab at 2.4 GHz; published 15-25 dB. */
