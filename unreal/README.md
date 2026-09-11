@@ -13,11 +13,19 @@ protocol in [`docs/bridge-protocol.md`](../docs/bridge-protocol.md). No estimati
    Do this **before** the first commit that contains `Content/`.
 2. **Unreal Engine 5.4 or newer** from the Epic Games Launcher → Unreal Engine → Library → `+`.
    Apple Silicon native build. ~40 GB. No Xcode needed for a Blueprint-only project.
-3. **Open the project**: the `.uproject` and `Config/` already exist. Double-click
+3. **Metal shader toolchain** — the headless bootstrap runs without it, but the editor GUI needs it to
+   compile shaders (first run logged `Missing Mac Metal toolchain (macos SDK not found)`; only the
+   Command Line Tools are installed and they lack the `metal` compiler). Install **Xcode** from the
+   App Store (~15 GB), open it once to accept the licence, then:
+   ```bash
+   sudo xcode-select -s /Applications/Xcode.app && xcodebuild -downloadComponent MetalToolchain
+   ```
+   `xcrun -f metal` should then print a path. Without this the editor opens with black/missing shaders.
+4. **Open the project**: the `.uproject` and `Config/` already exist. Double-click
    `VerticalGeofenceSim/VerticalGeofenceSim.uproject` (or Launcher → Library → My Projects → Browse).
    First open compiles shaders for a few minutes. Plugins `JsonBlueprintUtilities`, `HTTPBlueprint`,
    `PythonScriptPlugin`, `EditorScriptingUtilities` are pre-enabled in the `.uproject`.
-4. **Generate the tower** (Phase 1) — either headless from the repo root:
+5. **Generate the tower** (Phase 1) — either headless from the repo root:
    ```bash
    tools/ue-bootstrap.sh
    ```
@@ -26,7 +34,7 @@ protocol in [`docs/bridge-protocol.md`](../docs/bridge-protocol.md). No estimati
    This creates `/Game/Maps/L_Tower` with slabs (hoist + stair holes), the shaft cage, floor labels,
    beacon markers from `Data/DT_BeaconLayout.csv`, the lobby reference station, `Cam_Cutaway`, lights
    and a PlayerStart. Idempotent — rerun after editing `Scripts/tower_geometry.py` or the CSV.
-5. Install one **Blueprint WebSocket** plugin from Fab and enable it (the engine's `WebSockets`
+6. Install one **Blueprint WebSocket** plugin from Fab and enable it (the engine's `WebSockets`
    module has no Blueprint nodes). Shortlist — check each listing for **UE 5.8 + Mac** support and price
    before installing (Fab blocks scripted access, so this was not verified automatically):
    - [WebSocket Client for Unreal Engine](https://www.fab.com/listings/028b81de-6110-4a3f-90e9-eda0db1013b8)
@@ -41,7 +49,7 @@ protocol in [`docs/bridge-protocol.md`](../docs/bridge-protocol.md). No estimati
    Fallback if none supports 5.8 on Mac yet: `HTTP Blueprint` POST with the same message schema
    (one request per message to `http://localhost:8080/ingest`); inbound estimates then need polling
    or wait for v2.
-6. Then follow [`docs/unreal-build-guide.md`](../docs/unreal-build-guide.md) for the hand-authored
+7. Then follow [`docs/unreal-build-guide.md`](../docs/unreal-build-guide.md) for the hand-authored
    Blueprints (Phases 2–6).
 
 Milestone: project opens, `L_Tower` shows the tower, `git status` shows only `unreal/VerticalGeofenceSim/{Config,Content,Data,Scripts,*.uproject}`.
