@@ -13,6 +13,8 @@
 #include "Misc/Paths.h"
 #include "HAL/FileManager.h"
 #include "Containers/Ticker.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 static FString ToCompactJson(const TSharedRef<FJsonObject>& Obj)
 {
@@ -36,9 +38,14 @@ void USimBridge::Start(USimConfig* InConfig, ASimBuilding* InBuilding)
 	MessageCount = 0;
 	Backoff = 1.f;
 
-	const FString Dir = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Sessions"));
+	// -SimSessionsDir=<abs path> overrides; default is <ProjectSavedDir>/Sessions.
+	FString Dir;
+	if (!FParse::Value(FCommandLine::Get(), TEXT("SimSessionsDir="), Dir) || Dir.IsEmpty())
+	{
+		Dir = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Sessions"));
+	}
 	IFileManager::Get().MakeDirectory(*Dir, true);
-	LogPath = FPaths::Combine(Dir, FString::Printf(TEXT("%d-%s.jsonl"), Config->Seed, *FDateTime::Now().ToString(TEXT("%Y%m%d-%H%M%S"))));
+	LogPath = FPaths::ConvertRelativePathToFull(FPaths::Combine(Dir, FString::Printf(TEXT("%d-%s.jsonl"), Config->Seed, *FDateTime::Now().ToString(TEXT("%Y%m%d-%H%M%S")))));
 
 	if (!bStarted)
 	{
