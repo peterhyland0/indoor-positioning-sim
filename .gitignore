@@ -7,7 +7,6 @@ unreal/**/Saved/
 unreal/**/Intermediate/
 unreal/**/DerivedDataCache/
 unreal/**/Binaries/
-unreal/**/Build/
 unreal/**/.vs/
 unreal/**/.idea/
 *.xcworkspace

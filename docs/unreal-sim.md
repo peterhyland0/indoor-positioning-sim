@@ -93,6 +93,17 @@ The four canonical sessions in `sessions/` were recorded from `scenarios/*.json`
 
 ~20 s incremental. The editor must be restarted to load a new binary (or use Live Coding, Ctrl+Alt+F11).
 
+## Packaging
+
+```bash
+tools/package-mac.sh            # Development config (console + logs available); ~10 min
+```
+Produces `build/Mac/VerticalGeofenceSim.app` (~750 MB, gitignored). It runs the same code as the editor
+and accepts the same `-Sim*` flags; the recording from a packaged run is byte-identical to the editor's.
+The app is packaged **without** the macOS App Sandbox (`Build/Mac/Resources/Unrestricted.entitlements`)
+so it can write recordings to any `-SimSessionsDir`. `/Game/Sim` and `/Game/Data` are always cooked so
+`DA_SimConfig` ships.
+
 ## Level generation (`Scripts/bootstrap.py`)
 
 Idempotent. Run headless via `tools/ue-bootstrap.sh` (editor closed) or in the editor console with
