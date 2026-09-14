@@ -13,6 +13,6 @@ everything; only the server's direct connection reads and writes.
 
 The connector cannot read the database password. Get the connection string once from the dashboard:
 Supabase → project `ralco-sim` → **Connect** → *Session pooler* (IPv4-friendly) → copy the URI, and put it in
-`apps/server/.env` as `DATABASE_URL=postgresql://postgres.oijgcusxitphiuwakruz:<password>@aws-0-eu-west-1.pooler.supabase.com:5432/postgres`.
+`apps/server/.env` as `DATABASE_URL=postgresql://postgres.oijgcusxitphiuwakruz:<password>@aws-1-eu-west-1.pooler.supabase.com:5432/postgres`.
 Reset the password under Project Settings → Database if you don't have it. `.env` is gitignored.
 Without `DATABASE_URL` the server still runs; persistence is simply off.
