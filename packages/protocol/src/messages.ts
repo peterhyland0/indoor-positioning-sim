@@ -38,6 +38,8 @@ export const WorkerInfo = z.object({
   id: z.string(),
   platform: Platform,
   route: z.string().optional(),
+  /** the floor the worker is assigned to work on (their shift); what a site-level geofence would credit */
+  targetFloor: z.number().int().optional(),
 });
 
 export const SessionMsg = z.object({

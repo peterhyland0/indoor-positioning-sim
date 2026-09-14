@@ -19,7 +19,7 @@ pressure in hPa, RSSI in dBm.
            "maxRangeM":40,"rxSensitivityDbm":-95,"drywallPercent":0,
            "weatherDrift":true,"hoistSpeed":1.0,"hoistDwellSec":20},
  "beacons":[{"id":"F12-A","floor":12,"x":14.0,"y":9.5,"z":47.1,"txPowerDbm":-59}],
- "workers":[{"id":"w07","platform":"android","route":"Honest"}]}
+ "workers":[{"id":"w07","platform":"android","route":"Honest","targetFloor":12}]}
 ```
 
 ### `scan` — per worker, per scan timer fire
