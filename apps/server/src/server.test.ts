@@ -2,8 +2,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import WebSocket from 'ws';
-import { startServer, type RunningServer } from './server.js';
-import type { UiFrame } from './frames.js';
+import { startServer, type RunningServer } from './server';
+import type { UiFrame } from './frames';
 
 const sessionsDir = resolve(import.meta.dirname, '../../../sessions');
 let server: RunningServer;

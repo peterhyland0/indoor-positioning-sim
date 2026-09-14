@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Observation, SessionInfo } from '@sim/protocol';
-import { NearestBeaconEstimator } from './nearest.js';
-import { SmoothedBeaconEstimator } from './smoothed.js';
-import { FusedEstimator } from './fused.js';
-import { SiteGeofenceEstimator } from './gps.js';
+import { NearestBeaconEstimator } from './nearest';
+import { SmoothedBeaconEstimator } from './smoothed';
+import { FusedEstimator } from './fused';
+import { SiteGeofenceEstimator } from './gps';
 
 const FLOOR_H = 3.8;
 const PPM = 0.1205;

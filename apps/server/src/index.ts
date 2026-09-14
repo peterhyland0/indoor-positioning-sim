@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { loadConfig } from './config.js';
-import { startServer } from './server.js';
+import { loadConfig } from './config';
+import { startServer } from './server';
 
 // Minimal .env loader (no dependency): KEY=value lines in apps/server/.env
 try {

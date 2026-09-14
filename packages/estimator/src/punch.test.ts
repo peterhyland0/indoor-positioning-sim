@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PUNCH, NAIVE_PUNCH, PunchEngine } from './punch.js';
-import type { FloorEstimate } from './types.js';
+import { DEFAULT_PUNCH, NAIVE_PUNCH, PunchEngine } from './punch';
+import type { FloorEstimate } from './types';
 
 const on = (floor: number, state: FloorEstimate['state'] = 'stable'): FloorEstimate => ({ floor, confidence: 0.9, state });
 

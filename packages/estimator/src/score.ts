@@ -1,7 +1,7 @@
 // Scores an estimator run against ground truth, in the terms a payroll/compliance product cares about.
 import type { ScanMsg } from '@sim/protocol';
-import type { Punch } from './punch.js';
-import type { FloorEstimate } from './types.js';
+import type { Punch } from './punch';
+import type { FloorEstimate } from './types';
 
 export interface Tick {
   scan: ScanMsg;

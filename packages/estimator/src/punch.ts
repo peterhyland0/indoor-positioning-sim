@@ -1,7 +1,7 @@
 // Turns a stream of floor estimates into clock-in / clock-out events. Estimator-agnostic.
 // A "zone" is a floor. Enter = stable on the floor for enterDwellSec; leave = away for exitDwellSec.
 // Transit (hoist/stairs) never punches; a long transit clocks out so the ride isn't paid as work.
-import type { FloorEstimate } from './types.js';
+import type { FloorEstimate } from './types';
 
 export interface PunchParams {
   enterDwellSec: number;

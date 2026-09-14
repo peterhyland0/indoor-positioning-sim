@@ -4,11 +4,11 @@ import { readdir, stat } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import { tryParseLine, type CommandMsg, type EstimateMsg } from '@sim/protocol';
-import { Db } from './db.js';
-import { Pipeline } from './pipeline.js';
-import { Replayer } from './replay.js';
-import type { Config } from './config.js';
-import type { UiCommand, UiFrame } from './frames.js';
+import { Db } from './db';
+import { Pipeline } from './pipeline';
+import { Replayer } from './replay';
+import type { Config } from './config';
+import type { UiCommand, UiFrame } from './frames';
 
 export interface RunningServer {
   port: number;

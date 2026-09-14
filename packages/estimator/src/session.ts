@@ -1,9 +1,9 @@
 // Read a recorded JSONL session and run an estimator + punch engine over it, producing per-tick results
 // and metrics. Also used incrementally by the live server (see `SessionRunner`).
 import { parseLine, toObservation, toSessionInfo, type EventMsg, type ScanMsg, type SessionInfo } from '@sim/protocol';
-import { DEFAULT_PUNCH, PunchEngine, type Punch, type PunchParams } from './punch.js';
-import { DEFAULT_SCORE, score, type Metrics, type ScoreOptions, type Tick } from './score.js';
-import type { FloorEstimator } from './types.js';
+import { DEFAULT_PUNCH, PunchEngine, type Punch, type PunchParams } from './punch';
+import { DEFAULT_SCORE, score, type Metrics, type ScoreOptions, type Tick } from './score';
+import type { FloorEstimator } from './types';
 
 export interface Session {
   info: SessionInfo;

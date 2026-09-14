@@ -2,8 +2,8 @@
 // RSSI heard on that floor, and the reported floor only changes when a challenger beats the incumbent
 // by a margin for a dwell time. Removes most single-scan flapping; still fooled by long hoist rides.
 import { beaconFloor, type Observation, type SessionInfo } from '@sim/protocol';
-import { clamp01 } from './nearest.js';
-import { type FloorEstimate, type FloorEstimator } from '../types.js';
+import { clamp01 } from './nearest';
+import { type FloorEstimate, type FloorEstimator } from '../types';
 
 export interface SmoothedParams {
   /** EWMA time constant, seconds */

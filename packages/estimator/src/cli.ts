@@ -2,9 +2,9 @@
 // estimator score <session.jsonl...> [--estimator nearest,smoothed,fused] [--rate 45] [--json]
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
-import { parseSession, runSession } from './session.js';
-import { createEstimator, ESTIMATOR_NAMES, type EstimatorName } from './registry.js';
-import { DEFAULT_SCORE, type Metrics } from './score.js';
+import { parseSession, runSession } from './session';
+import { createEstimator, ESTIMATOR_NAMES, type EstimatorName } from './registry';
+import { DEFAULT_SCORE, type Metrics } from './score';
 
 const args = process.argv.slice(2);
 const cmd = args.shift();

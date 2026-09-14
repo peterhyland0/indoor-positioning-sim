@@ -2,9 +2,9 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseSession, runSession } from './session.js';
-import { createEstimator, ESTIMATOR_NAMES, type EstimatorName } from './registry.js';
-import type { Metrics } from './score.js';
+import { parseSession, runSession } from './session';
+import { createEstimator, ESTIMATOR_NAMES, type EstimatorName } from './registry';
+import type { Metrics } from './score';
 
 const dir = join(import.meta.dirname, '../../../sessions');
 const load = (name: string) => parseSession(readFileSync(join(dir, `${name}.jsonl`), 'utf8'));

@@ -2,7 +2,7 @@
 // assigned to. It cannot tell the lobby from the 12th floor - this is the before-state that vertical
 // geofencing replaces, and the one the "clocked in from the lobby" story is about.
 import type { Observation, SessionInfo } from '@sim/protocol';
-import { UNKNOWN, type FloorEstimate, type FloorEstimator } from '../types.js';
+import { UNKNOWN, type FloorEstimate, type FloorEstimator } from '../types';
 
 export class SiteGeofenceEstimator implements FloorEstimator {
   readonly name = 'gps';

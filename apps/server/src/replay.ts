@@ -1,7 +1,7 @@
 // Feed a recorded JSONL session through the pipeline, paced by its `t` values (speed 0 = as fast as possible).
 import { readFile } from 'node:fs/promises';
 import { parseLine } from '@sim/protocol';
-import type { Pipeline } from './pipeline.js';
+import type { Pipeline } from './pipeline';
 
 export class Replayer {
   private stopped = false;

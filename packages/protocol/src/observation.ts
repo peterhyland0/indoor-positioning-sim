@@ -1,6 +1,6 @@
 // What an estimator is allowed to see: a scan message with the ground truth removed.
 // The type makes the separation explicit; `toObservation` is the only way to build one.
-import type { ScanMsg, SessionMsg, BeaconInfo, WorkerInfo } from './messages.js';
+import type { ScanMsg, SessionMsg, BeaconInfo, WorkerInfo } from './messages';
 
 export type Observation = Omit<ScanMsg, 'truth'>;
 

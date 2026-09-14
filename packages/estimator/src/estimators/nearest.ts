@@ -1,7 +1,7 @@
 // Baseline: the floor of the strongest beacon in the latest scan. No memory, no smoothing.
 // This is what a beacon-per-floor product does out of the box.
 import { beaconFloor, type Observation, type SessionInfo } from '@sim/protocol';
-import { UNKNOWN, type FloorEstimate, type FloorEstimator } from '../types.js';
+import { UNKNOWN, type FloorEstimate, type FloorEstimator } from '../types';
 
 export class NearestBeaconEstimator implements FloorEstimator {
   readonly name = 'nearest';

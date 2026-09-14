@@ -2,8 +2,8 @@
 // dashboard frames, persists, and produces the estimate to send back to Unreal.
 import { toSessionInfo, type EventMsg, type ScanMsg, type SessionMsg, type BeaconInfo, type WorkerInfo, type EstimateMsg } from '@sim/protocol';
 import { createEstimator, ESTIMATOR_NAMES, SessionRunner, DEFAULT_SCORE, type EstimatorName, type Metrics, type Punch } from '@sim/estimator';
-import type { Db } from './db.js';
-import type { Snapshot, TaggedPunch, TimelineSample, UiFrame, WorkerNow } from './frames.js';
+import type { Db } from './db';
+import type { Snapshot, TaggedPunch, TimelineSample, UiFrame, WorkerNow } from './frames';
 
 const MAX_PUNCHES = 500;
 const MAX_EVENTS = 200;

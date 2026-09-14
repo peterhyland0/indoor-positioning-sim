@@ -4,9 +4,9 @@
 // move it), and its rate of change tells us when the worker is in the hoist or on the stairs - in
 // which case the floor is frozen and the punch engine is told to hold off.
 import type { Observation, SessionInfo } from '@sim/protocol';
-import { DEFAULT_SMOOTHED, SmoothedBeaconEstimator, secondBestGap, type SmoothedParams } from './smoothed.js';
-import { clamp01 } from './nearest.js';
-import type { FloorEstimate } from '../types.js';
+import { DEFAULT_SMOOTHED, SmoothedBeaconEstimator, secondBestGap, type SmoothedParams } from './smoothed';
+import { clamp01 } from './nearest';
+import type { FloorEstimate } from '../types';
 
 export interface FusedParams extends SmoothedParams {
   /** hPa per metre (~1/8.3) */

@@ -1,9 +1,9 @@
-import { SiteGeofenceEstimator } from './estimators/gps.js';
-import { NearestBeaconEstimator } from './estimators/nearest.js';
-import { SmoothedBeaconEstimator } from './estimators/smoothed.js';
-import { FusedEstimator } from './estimators/fused.js';
-import { DEFAULT_PUNCH, NAIVE_PUNCH, type PunchParams } from './punch.js';
-import type { FloorEstimator } from './types.js';
+import { SiteGeofenceEstimator } from './estimators/gps';
+import { NearestBeaconEstimator } from './estimators/nearest';
+import { SmoothedBeaconEstimator } from './estimators/smoothed';
+import { FusedEstimator } from './estimators/fused';
+import { DEFAULT_PUNCH, NAIVE_PUNCH, type PunchParams } from './punch';
+import type { FloorEstimator } from './types';
 
 export const ESTIMATOR_NAMES = ['gps', 'nearest', 'smoothed', 'fused'] as const;
 export type EstimatorName = (typeof ESTIMATOR_NAMES)[number];

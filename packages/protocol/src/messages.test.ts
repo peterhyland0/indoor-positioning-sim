@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseLine, ScanMsg } from './messages.js';
-import { toObservation, toSessionInfo, beaconFloor } from './observation.js';
+import { parseLine, ScanMsg } from './messages';
+import { toObservation, toSessionInfo, beaconFloor } from './observation';
 
 const sessionsDir = join(import.meta.dirname, '../../../sessions');
 
