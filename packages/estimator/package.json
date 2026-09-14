@@ -1,0 +1,14 @@
+{
+  "name": "@sim/estimator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Floor estimators, punch engine and scorer for vertical geofencing. Pure TypeScript, no I/O except the CLI.",
+  "exports": { ".": "./src/index.ts" },
+  "bin": { "estimator": "./src/cli.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "score": "tsx src/cli.ts score"
+  },
+  "dependencies": { "@sim/protocol": "*" }
+}
