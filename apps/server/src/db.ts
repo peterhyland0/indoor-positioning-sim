@@ -86,16 +86,29 @@ export class Db {
     this.events.push({ session_id: sessionId, t: e.t, name: e.name, payload: JSON.stringify(e.payload) });
   }
 
+  private metricsPending: { sessionId: number; metrics: Partial<Record<EstimatorName, Metrics>> } | null = null;
+  private metricsInFlight = false;
+
+  /** Coalesced: only the most recent metrics are written, and never two writes at once. */
   async upsertMetrics(sessionId: number, metrics: Partial<Record<EstimatorName, Metrics>>): Promise<void> {
     if (!this.sql) return;
+    this.metricsPending = { sessionId, metrics };
+    if (this.metricsInFlight) return;
+    this.metricsInFlight = true;
     const sql = this.sql;
     try {
-      for (const [estimator, m] of Object.entries(metrics)) {
-        await sql`insert into metrics (session_id, estimator, computed_at, values) values (${sessionId}, ${estimator}, now(), ${sql.json(m as never)})
-                  on conflict (session_id, estimator) do update set computed_at = now(), values = excluded.values`;
+      while (this.metricsPending) {
+        const { sessionId: id, metrics: m } = this.metricsPending;
+        this.metricsPending = null;
+        for (const [estimator, v] of Object.entries(m)) {
+          await sql`insert into metrics (session_id, estimator, computed_at, values) values (${id}, ${estimator}, now(), ${sql.json(v as never)})
+                    on conflict (session_id, estimator) do update set computed_at = now(), values = excluded.values`;
+        }
       }
     } catch (e) {
       this.log(`db: upsertMetrics failed: ${(e as Error).message}`);
+    } finally {
+      this.metricsInFlight = false;
     }
   }
 
@@ -152,6 +165,7 @@ export class Db {
   async close(): Promise<void> {
     if (this.timer) clearInterval(this.timer);
     await this.flush();
+    if (this.metricsPending) await this.upsertMetrics(this.metricsPending.sessionId, this.metricsPending.metrics);
     await this.sql?.end({ timeout: 2 });
   }
 }

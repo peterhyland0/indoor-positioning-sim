@@ -119,11 +119,14 @@ export async function startServer(cfg: Config, log: (msg: string) => void = cons
     // Messages are handled strictly in order: a session must be fully started (DB row created,
     // snapshot sent) before its first scan is processed.
     let chain: Promise<void> = Promise.resolve();
+    let headerSeen = false; // scans before this connection's session header belong to an unknown run: drop them
+    let dropped = 0;
     ws.on('message', (raw) => {
       const msg = tryParseLine(raw.toString());
       if (!msg) { log(`bridge: unparseable frame: ${raw.toString().slice(0, 100)}`); return; }
       chain = chain.then(async () => {
-        if (msg.type === 'session') { if (replayer.running) replayer.stop(); await pipeline.startSession(msg, 'live', null); }
+        if (msg.type === 'session') { if (replayer.running) replayer.stop(); headerSeen = true; await pipeline.startSession(msg, 'live', null); }
+        else if (!headerSeen) { if (dropped++ === 0) log('bridge: scans arriving without a session header (old Unreal build?) - dropping until one arrives'); }
         else if (msg.type === 'scan') pipeline.handleScan(msg);
         else if (msg.type === 'event') pipeline.handleEvent(msg);
       }).catch((e) => log(`bridge: ${(e as Error).message}`));
