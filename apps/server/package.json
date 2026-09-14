@@ -1,0 +1,21 @@
+{
+  "name": "@sim/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Estimator service: ingests the Unreal bridge stream, runs every estimator, persists to Postgres, feeds the dashboard",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sim/estimator": "*",
+    "@sim/protocol": "*",
+    "postgres": "3.4.9",
+    "ws": "8.21.3"
+  },
+  "devDependencies": {
+    "@types/ws": "8.18.1"
+  }
+}
