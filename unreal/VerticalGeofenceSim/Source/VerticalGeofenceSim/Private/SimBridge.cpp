@@ -37,6 +37,7 @@ void USimBridge::Start(USimConfig* InConfig, ASimBuilding* InBuilding)
 	Building = InBuilding;
 	MessageCount = 0;
 	Backoff = 1.f;
+	SessionLine.Empty();
 
 	// -SimSessionsDir=<abs path> overrides; default is <ProjectSavedDir>/Sessions.
 	FString Dir;
@@ -122,6 +123,11 @@ void USimBridge::Connect()
 			Self->bConnected = true;
 			Self->Backoff = 1.f;
 			UE_LOG(LogSim, Log, TEXT("bridge: connected"));
+			// The session header is what tells the server a new run began; (re)send it on every connect.
+			if (!Self->SessionLine.IsEmpty() && Self->Socket.IsValid())
+			{
+				Self->Socket->Send(Self->SessionLine);
+			}
 		}
 	});
 	Socket->OnConnectionError().AddLambda([WeakThis, ScheduleReconnect](const FString& Err)
@@ -129,14 +135,16 @@ void USimBridge::Connect()
 		if (USimBridge* Self = WeakThis.Get())
 		{
 			Self->bConnected = false;
+			UE_LOG(LogSim, Verbose, TEXT("bridge: connection error: %s"), *Err);
 			ScheduleReconnect();
 		}
 	});
-	Socket->OnClosed().AddLambda([WeakThis, ScheduleReconnect](int32, const FString&, bool)
+	Socket->OnClosed().AddLambda([WeakThis, ScheduleReconnect](int32 Code, const FString& Reason, bool)
 	{
 		if (USimBridge* Self = WeakThis.Get())
 		{
 			Self->bConnected = false;
+			UE_LOG(LogSim, Log, TEXT("bridge: closed (%d %s)"), Code, *Reason);
 			ScheduleReconnect();
 		}
 	});
@@ -154,7 +162,8 @@ void USimBridge::Emit(const TSharedRef<FJsonObject>& Obj)
 {
 	Obj->SetNumberField(TEXT("v"), 1);
 	const FString Line = ToCompactJson(Obj);
-	if (bConnected && Socket.IsValid())
+	// The session line is sent from OnConnected (the socket is never open yet when SendSession runs).
+	if (bConnected && Socket.IsValid() && Line != SessionLine)
 	{
 		Socket->Send(Line);
 	}
@@ -216,6 +225,8 @@ void USimBridge::SendSession()
 		Workers.Add(MakeShared<FJsonValueObject>(J));
 	}
 	O->SetArrayField(TEXT("workers"), Workers);
+	O->SetNumberField(TEXT("v"), 1);
+	SessionLine = ToCompactJson(O);
 	Emit(O);
 }
 

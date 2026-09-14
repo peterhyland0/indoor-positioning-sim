@@ -41,6 +41,8 @@ private:
 	UPROPERTY() TObjectPtr<USimConfig> Config;
 	UPROPERTY() TObjectPtr<ASimBuilding> Building;
 	FString LogPath;
+	/** Cached session header, re-sent on every (re)connect so the server always sees a run begin. */
+	FString SessionLine;
 	bool bConnected = false;
 	bool bStarted = false;
 	int32 MessageCount = 0;

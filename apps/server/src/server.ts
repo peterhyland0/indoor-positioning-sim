@@ -47,7 +47,7 @@ export async function startServer(cfg: Config, log: (msg: string) => void = cons
   };
 
   const http = createServer(async (req, res) => {
-    const url = new URL(req.url ?? '/', 'http://localhost');
+    const url = new URL(pathOf(req.url) + (req.url?.includes('?') ? '?' + req.url.split('?')[1] : ''), 'http://localhost');
     try {
       if (req.method === 'OPTIONS') return json(res, 204, {});
       if (url.pathname === '/api/health') return json(res, 200, { ok: true, unrealConnected: unreal !== null, replaying: replayer.running, db: db.enabled, primary: cfg.primary });
@@ -90,8 +90,14 @@ export async function startServer(cfg: Config, log: (msg: string) => void = cons
 
   // ---- WebSockets
   const wss = new WebSocketServer({ server: http });
+  const pathOf = (target: string | undefined): string => {
+    // Browsers/ws send "/ui"; Unreal's client may send an absolute-form target or nothing at all.
+    if (!target) return '/';
+    if (target.startsWith('/')) return target.split('?')[0]!;
+    try { return new URL(target).pathname; } catch { return '/'; }
+  };
   wss.on('connection', (ws, req) => {
-    const path = new URL(req.url ?? '/', 'http://localhost').pathname;
+    const path = pathOf(req.url);
     if (path === '/ui') {
       uiClients.add(ws);
       ws.send(JSON.stringify(pipeline.snapshot(unreal !== null)));
@@ -122,9 +128,10 @@ export async function startServer(cfg: Config, log: (msg: string) => void = cons
         else if (msg.type === 'event') pipeline.handleEvent(msg);
       }).catch((e) => log(`bridge: ${(e as Error).message}`));
     });
-    ws.on('close', () => {
+    ws.on('error', (e) => log(`bridge: socket error: ${e.message}`));
+    ws.on('close', (code, reason) => {
       if (unreal === ws) unreal = null;
-      log('bridge: Unreal disconnected');
+      log(`bridge: Unreal disconnected (code ${code}${reason.length ? ` ${reason.toString()}` : ''})`);
       void pipeline.finish();
       status();
     });
