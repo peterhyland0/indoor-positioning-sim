@@ -291,7 +291,18 @@ void USimBridge::HandleInbound(const FString& Text)
 	{
 		return;
 	}
-	if (Obj->GetStringField(TEXT("type")) != TEXT("estimate"))
+	const FString Type = Obj->GetStringField(TEXT("type"));
+	if (Type == TEXT("command"))
+	{
+		// Dashboard sabotage bar (via the server): same verbs as the console and the panel.
+		FString Cmd;
+		if (Obj->TryGetStringField(TEXT("cmd"), Cmd))
+		{
+			Building->RunCommand(Cmd);
+		}
+		return;
+	}
+	if (Type != TEXT("estimate"))
 	{
 		return;
 	}

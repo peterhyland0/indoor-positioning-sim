@@ -54,11 +54,19 @@ pressure in hPa, RSSI in dBm.
 ## Inbound (estimator → Unreal)
 
 ```json
-{"v":1,"type":"estimate","worker":"w07","estFloor":13,"punch":null}
+{"v":1,"type":"estimate","worker":"w07","estFloor":13,"punch":null,"source":"fused"}
 ```
 
 - `estFloor`: integer floor, or `null` if the estimator has no opinion yet.
 - `punch`: `"in"` | `"out"` | `null`. Unreal flashes a marker on the worker label.
+- `source`: optional name of the estimator that produced it.
+
+```json
+{"v":1,"type":"command","cmd":"killbeacon F12-A"}
+```
+
+- `cmd`: any `ASimBuilding::RunCommand` verb (`killbeacon`, `revivebeacon`, `battery`, `nudge`, `storm`,
+  `slam`, `pocket`, `background`, `select`, `pause`, `resume`, `debug`). Sent by the dashboard through the server.
 
 Unreal ignores anything it doesn't understand. Missing server = no error; the sim
 keeps recording to JSONL and retries the socket with backoff.
