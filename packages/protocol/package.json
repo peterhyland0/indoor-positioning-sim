@@ -1,0 +1,10 @@
+{
+  "name": "@sim/protocol",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Bridge protocol between the Unreal simulator and the estimator: zod schemas and types",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc --noEmit -p tsconfig.json" },
+  "dependencies": { "zod": "4.6.5" }
+}

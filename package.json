@@ -4,11 +4,21 @@
   "private": true,
   "type": "module",
   "description": "Vertical geofencing simulator: Unreal world + sensor sim, TypeScript estimator/dashboard",
+  "workspaces": ["packages/*", "apps/*"],
   "scripts": {
     "echo": "node tools/echo-server.mjs",
-    "replay": "node tools/replay-client.mjs"
+    "replay": "node tools/replay-client.mjs",
+    "test": "vitest run",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "score": "npm run score -w @sim/estimator --"
   },
   "dependencies": {
-    "ws": "^8.18.0"
+    "ws": "8.21.3"
+  },
+  "devDependencies": {
+    "@types/node": "26.5.1",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2",
+    "vitest": "5.0.0"
   }
 }
