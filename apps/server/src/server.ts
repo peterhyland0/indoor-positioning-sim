@@ -51,7 +51,7 @@ export async function startServer(cfg: Config, log: (msg: string) => void = cons
     try {
       if (req.method === 'OPTIONS') return json(res, 204, {});
       if (url.pathname === '/api/health') return json(res, 200, { ok: true, unrealConnected: unreal !== null, replaying: replayer.running, db: db.enabled, primary: cfg.primary });
-      if (url.pathname === '/api/state') return json(res, 200, pipeline.snapshot(unreal !== null));
+      if (url.pathname === '/api/state') return json(res, 200, { ...pipeline.snapshot(unreal !== null), replaying: replayer.running });
       if (url.pathname === '/api/recordings') {
         const files = (await readdir(cfg.sessionsDir)).filter((f) => f.endsWith('.jsonl'));
         const out = [];
@@ -100,7 +100,7 @@ export async function startServer(cfg: Config, log: (msg: string) => void = cons
     const path = pathOf(req.url);
     if (path === '/ui') {
       uiClients.add(ws);
-      ws.send(JSON.stringify(pipeline.snapshot(unreal !== null)));
+      ws.send(JSON.stringify({ ...pipeline.snapshot(unreal !== null), replaying: replayer.running }));
       ws.on('message', (raw) => {
         let cmd: UiCommand;
         try { cmd = JSON.parse(raw.toString()) as UiCommand; } catch { return; }

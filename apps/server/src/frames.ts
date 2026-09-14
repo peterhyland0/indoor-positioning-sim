@@ -45,6 +45,7 @@ export interface Snapshot {
   estimators: EstimatorName[];
   primary: EstimatorName;
   unrealConnected: boolean;
+  replaying?: boolean;
   t: number;
   workers: WorkerNow[];
   punches: TaggedPunch[];
