@@ -14,3 +14,4 @@ unreal/**/.idea/
 *.sln
 __pycache__/
 build/
+apps/*/.env
