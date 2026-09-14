@@ -64,7 +64,7 @@ export function score(estimator: string, ticks: Tick[], punches: Punch[], opts: 
   let misattributedSec = 0, uncreditedSec = 0, lobbyCreditedSec = 0;
   let rides = 0, spurious = 0;
   const timeToCorrect: number[] = [];
-  let punchCount = 0, punchCorrect = 0;
+  let punchCount = 0, clockIns = 0, clockInsCorrect = 0;
 
   for (const [worker, arr] of byWorker) {
     const wp = punchesByWorker.get(worker) ?? [];
@@ -92,6 +92,7 @@ export function score(estimator: string, ticks: Tick[], punches: Punch[], opts: 
       if (after) timeToCorrect.push(after.scan.t - r.end);
     }
 
+    punchCount += wp.length;
     for (const p of wp) {
       if (p.kind !== 'in') continue; // clock-outs happen after leaving by definition; judge clock-ins
       // truth at punch time: last tick at or before p.t
@@ -99,8 +100,8 @@ export function score(estimator: string, ticks: Tick[], punches: Punch[], opts: 
       for (let i = arr.length - 1; i >= 0; i--) {
         if (arr[i]!.scan.t <= p.t) { truthFloor = arr[i]!.scan.truth.floor; break; }
       }
-      punchCount++;
-      if (truthFloor === p.floor) punchCorrect++;
+      clockIns++;
+      if (truthFloor === p.floor) clockInsCorrect++;
     }
 
     for (let i = 0; i < arr.length; i++) {
@@ -136,7 +137,7 @@ export function score(estimator: string, ticks: Tick[], punches: Punch[], opts: 
     floorAccuracyOffHoist: nOff ? correctOff / nOff : 0,
     floorAccuracyOnHoist: nOn ? correctOn / nOn : 0,
     punches: punchCount,
-    punchAccuracy: punchCount ? punchCorrect / punchCount : 0,
+    punchAccuracy: clockIns ? clockInsCorrect / clockIns : 0,
     hoistRides: rides,
     spuriousPerHoistRide: rides ? spurious / rides : 0,
     timeToCorrectSec: median,

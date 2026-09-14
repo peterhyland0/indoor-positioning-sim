@@ -13,7 +13,10 @@
     "replay": "node tools/replay-client.mjs",
     "test": "vitest run",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "score": "tsx packages/estimator/src/cli.ts score"
+    "score": "tsx packages/estimator/src/cli.ts score",
+    "server": "npm run dev -w @sim/server",
+    "dashboard": "npm run dev -w @sim/dashboard",
+    "build": "npm run build -w @sim/dashboard"
   },
   "dependencies": {
     "ws": "8.21.3"
