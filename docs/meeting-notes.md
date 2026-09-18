@@ -30,6 +30,15 @@ Running list for conversations about the project. Add to it as things come up.
   Most consequential to get right: (1) phone-side vs server-side estimation — decides whether the
   estimator package needs to drop into React Native; (2) is mobile actually React Native; (3) do they
   already smooth / apply hysteresis, which would make my "nearest" baseline unfair to them.
+- **Site hardware assumptions to verify** (what the simulator assumes about the physical setup):
+  - Beacons: standard BLE advertisers, −59 dBm @ 1 m, 300 ms interval, 2 per floor on the ceiling near the
+    core, battery-powered. → Which beacons, how many per floor, where mounted, how powered?
+  - Phones: workers' own phones with the app; Android scans 1 s (8 s batched in background), iOS gets
+    region enter/exit only in background; phone has a barometer. → Own phone or site-issued device?
+  - Reference barometer in the lobby — **my proposal, they don't have one**. → Is a per-site reference
+    sensor realistic (a beacon with a pressure sensor, a phone at the gate)?
+  - Building: concrete shell, no walls, 3.8 m floors, open hoist shaft + stairwell, one hoist at 1 m/s.
+    → Are their sites shell stage or fit-out (drywall changes the RF a lot)? How many hoists?
 - **RF model check:** the simulator's radio model is a straight line from beacon to phone with
   log-distance path loss plus a fixed loss per slab crossed (`UPhoneSensorsComponent::ComputeRssi`).
   Is that a fair stand-in for what they see on site, or is real behaviour dominated by something else
