@@ -19,6 +19,8 @@
 #include "Engine/GameViewportClient.h"
 #include "TimerManager.h"
 #include "Misc/Parse.h"
+#include "UnrealClient.h"
+#include "HAL/PlatformTime.h"
 
 // ---------------------------------------------------------------- controller
 
@@ -46,6 +48,18 @@ void ASimPlayerController::BeginPlay()
 			PanelHost = SNew(SOverlay) + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(16.f) [ Panel.ToSharedRef() ];
 			GEngine->GameViewport->AddViewportWidgetContent(PanelHost.ToSharedRef(), 10);
 		});
+	}
+	FString Clip;
+	if (FParse::Value(FCommandLine::Get(), TEXT("SimClip="), Clip))
+	{
+		TArray<FString> Parts;
+		Clip.ParseIntoArray(Parts, TEXT(","));
+		if (Parts.Num() >= 2)
+		{
+			ClipStart = FCString::Atof(*Parts[0]);
+			ClipEnd = FCString::Atof(*Parts[1]);
+			if (Parts.Num() >= 3) ClipFps = FMath::Clamp(FCString::Atof(*Parts[2]), 1.f, 60.f);
+		}
 	}
 	FString Cam;
 	if (FParse::Value(FCommandLine::Get(), TEXT("SimCamera="), Cam) && Cam.Equals(TEXT("follow"), ESearchCase::IgnoreCase))
@@ -79,7 +93,15 @@ void ASimPlayerController::TogglePanel()
 {
 	if (PanelHost.IsValid())
 	{
-		PanelHost->SetVisibility(PanelHost->GetVisibility() == EVisibility::Visible ? EVisibility::Collapsed : EVisibility::Visible);
+		SetPanelVisible(PanelHost->GetVisibility() != EVisibility::Visible);
+	}
+}
+
+void ASimPlayerController::SetPanelVisible(bool bVisible)
+{
+	if (PanelHost.IsValid())
+	{
+		PanelHost->SetVisibility(bVisible ? EVisibility::Visible : EVisibility::Collapsed);
 	}
 }
 
@@ -98,11 +120,24 @@ void ASimPlayerController::UseFollowCamera()
 void ASimPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	ASimBuilding* B = Building();
+
+	// Frame dump for clips: real-time paced so the video plays at the sim's apparent speed.
+	if (ClipEnd > 0.f && B)
+	{
+		const float T = B->GetSimTime();
+		const double Now = FPlatformTime::Seconds();
+		if (T >= ClipStart && T <= ClipEnd && Now >= NextClipShotAt)
+		{
+			NextClipShotAt = Now + 1.0 / ClipFps;
+			FScreenshotRequest::RequestScreenshot(FString::Printf(TEXT("clip/frame_%05d"), ClipFrame++), true, false);
+		}
+	}
+
 	if (!bFollowSelected || !FollowCam)
 	{
 		return;
 	}
-	ASimBuilding* B = Building();
 	ASimWorker* W = B ? B->GetSelectedWorker() : nullptr;
 	if (!W)
 	{

@@ -6,6 +6,7 @@
 #include "SimWorker.h"
 #include "SimHoist.h"
 #include "PhoneSensorsComponent.h"
+#include "SimGameMode.h"
 #include "VerticalGeofenceSim.h"
 #include "Engine/DataTable.h"
 #include "Engine/World.h"
@@ -424,6 +425,19 @@ bool ASimBuilding::RunCommand(const FString& Command)
 	else if (Verb == TEXT("pocket"))       { if (ASimWorker* W = WorkerArg(1)) { W->SetPhoneState(OnOff(2) ? EPhoneState::InPocket : EPhoneState::InHand); if (Br) Br->SendEvent(TEXT("workerPhoneState"), FString::Printf(TEXT("{\"worker\":\"%s\",\"phoneState\":\"%s\"}"), *W->WorkerId.ToString(), OnOff(2) ? TEXT("inPocket") : TEXT("inHand"))); } else bOk = false; }
 	else if (Verb == TEXT("background"))   { if (ASimWorker* W = WorkerArg(1)) { W->SetAppState(OnOff(2) ? EAppState::Background : EAppState::Foreground); if (Br) Br->SendEvent(TEXT("workerAppState"), FString::Printf(TEXT("{\"worker\":\"%s\",\"appState\":\"%s\"}"), *W->WorkerId.ToString(), OnOff(2) ? TEXT("bg") : TEXT("fg"))); } else bOk = false; }
 	else if (Verb == TEXT("select"))       { if (ASimWorker* W = WorkerArg(1)) SelectedWorker = W; else bOk = false; }
+	else if (Verb == TEXT("camera") || Verb == TEXT("panel"))
+	{
+		ASimPlayerController* PC = Cast<ASimPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
+		if (!PC) { bOk = false; }
+		else if (Verb == TEXT("panel")) { PC->SetPanelVisible(OnOff(1)); }
+		else
+		{
+			const FString Which = Arg(1).ToLower();
+			if (Which == TEXT("follow")) PC->UseFollowCamera();
+			else if (Which == TEXT("free")) PC->UseFreeCamera();
+			else PC->UseCutawayCamera();
+		}
+	}
 	else if (Verb == TEXT("list"))
 	{
 		for (const ASimBeacon* B : Beacons) UE_LOG(LogSim, Log, TEXT("  beacon %s F%d %s battery %.2f"), *B->BeaconId.ToString(), B->Floor, B->bAlive ? TEXT("alive") : TEXT("dead"), B->Battery);

@@ -54,6 +54,7 @@ public:
 	 *   killbeacon <id> | revivebeacon <id> | battery <id> <0-1> | nudge <id> <metres>
 	 *   storm on|off | slam <floor> | pause | resume | debug on|off
 	 *   pocket <worker> on|off | background <worker> on|off | select <worker> | list
+	 *   camera cutaway|follow|free | panel on|off
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Sim") bool RunCommand(const FString& Command);
 	/** Load a JSON array of {"t": seconds, "cmd": "..."} to run at those sim times. */

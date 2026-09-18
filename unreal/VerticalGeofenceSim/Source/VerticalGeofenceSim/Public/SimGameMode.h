@@ -24,8 +24,13 @@ public:
 	/** Chase camera on the selected worker (Tab cycles). */
 	UFUNCTION(BlueprintCallable, Category = "Sim") void UseFollowCamera();
 	UFUNCTION(BlueprintCallable, Category = "Sim") void TogglePanel();
+	UFUNCTION(BlueprintCallable, Category = "Sim") void SetPanelVisible(bool bVisible);
 
 private:
+	/** -SimClip=start,end,fps: dump numbered screenshots between two sim times (for making videos). */
+	float ClipStart = -1.f, ClipEnd = -1.f, ClipFps = 15.f;
+	double NextClipShotAt = 0.0;
+	int32 ClipFrame = 0;
 	UPROPERTY() TObjectPtr<class ACameraActor> FollowCam;
 	TSharedPtr<class SSimPanel> Panel;
 	TSharedPtr<class SWidget> PanelHost;

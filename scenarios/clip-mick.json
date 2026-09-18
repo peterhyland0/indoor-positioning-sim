@@ -1,0 +1,12 @@
+{
+  "description": "60-second clip at 2x: follow w01 to the hoist and up to F12 (label frozen red during the ride, green on arrival), pull back to the tower, kill F12-A, return to w01 still placed correctly.",
+  "workers": ["w01", "w02", "w03", "w04"],
+  "commands": [
+    {"t": 0,   "cmd": "select w01"},
+    {"t": 0,   "cmd": "panel off"},
+    {"t": 1,   "cmd": "camera follow"},
+    {"t": 62,  "cmd": "camera cutaway"},
+    {"t": 75,  "cmd": "killbeacon F12-A"},
+    {"t": 92,  "cmd": "camera follow"}
+  ]
+}

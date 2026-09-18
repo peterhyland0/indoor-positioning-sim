@@ -16,3 +16,4 @@ __pycache__/
 build/
 apps/*/.env
 .env
+unreal/VerticalGeofenceSim/MyProject/
