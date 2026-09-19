@@ -32,11 +32,16 @@ public:
 
 	/** World XY of the car centre (metres), set by the building from the shaft rectangle. */
 	FVector2D CarXY = FVector2D::ZeroVector;
+	/** Shaft depth (metres) so the door position can be derived. */
+	float ShaftDepthM = 3.f;
+	/** Where riders wait / step off: just south of the shaft, at floor level (world cm, XY only). */
+	FVector2D DoorXYcm() const { return FVector2D(CarXY.X * 100.f, (CarXY.Y - ShaftDepthM / 2.f - 1.0f) * 100.f); }
 
 private:
 	void BoardWaitingWorkers();
 
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> Car;
+	UPROPERTY(VisibleAnywhere) TArray<TObjectPtr<UStaticMeshComponent>> CageParts;
 
 	EHoistState State = EHoistState::Idle;
 	int32 CurrentFloor = 0;

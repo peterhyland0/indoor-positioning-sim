@@ -222,6 +222,7 @@ void USimBridge::SendSession()
 		J->SetStringField(TEXT("platform"), PlatformStr(W->Platform));
 		J->SetStringField(TEXT("route"), W->RouteName.ToString());
 		J->SetNumberField(TEXT("targetFloor"), W->TargetFloor);
+		J->SetStringField(TEXT("trade"), W->Trade.ToString());
 		Workers.Add(MakeShared<FJsonValueObject>(J));
 	}
 	O->SetArrayField(TEXT("workers"), Workers);

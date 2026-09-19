@@ -14,7 +14,7 @@ generates the level. No Blueprint logic; the editor is used only to look at thin
 | `ASimReferenceStation` | Lobby barometer: `SitePressure + drift + noise`. |
 | `ASimWorker` | Route executor (`WalkTo`, `WaitFor`, `Wander`, `BoardHoist`, `TakeStairs` from `DT_Routes`). Holds ground truth (`TruthFloor`, `bOnHoist`) and the last estimate. Text label above the head: white = no estimate, green = estimate matches truth, red = mismatch. |
 | `UPhoneSensorsComponent` | The phone. Scan cadence by platform/app-state; per beacon a **multi line trace on the Radio channel** counting every slab/partition crossed; RSSI = log-distance path loss − material loss − body loss − slow fade + Gaussian noise; packet loss; sensitivity floor. Barometer from height + drift + gust + noise. iOS-background mode emits region enter/exit events instead of RSSI. |
-| `ASimHoist` | Car with `Idle → Moving → Dwell` state machine serving a floor queue; riders are moved with the car. |
+| `ASimHoist` | Caged car with `Idle → Moving → Dwell` state machine serving a floor queue; riders are moved with the car. Two hoists (`HoistShaft`, `HoistShaft2`); workers are assigned alternately and `HoistDoor` waypoints resolve to their hoist. |
 | `USimBridge` | WebSocket client (engine `WebSockets` module, reconnect with backoff) + always-on JSONL recording under `Saved/Sessions/`. `SendSession`, `SendScan`, `SendEvent`; inbound `estimate` messages update worker labels. Protocol: [`bridge-protocol.md`](bridge-protocol.md). |
 | `ASimGameMode` / `ASimPlayerController` / `ASimHUD` | Spectator pawn, key bindings, cameras, text HUD. |
 | `SSimPanel` | Slate sabotage panel (top-right). Every button calls `ASimBuilding::RunCommand`. |

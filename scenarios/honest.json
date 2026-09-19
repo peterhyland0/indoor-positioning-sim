@@ -1,5 +1,20 @@
 {
   "description": "Four honest workers: straight to the hoist, up to their floor, work, back down. Baseline.",
-  "workers": ["w01", "w02", "w03", "w04"],
-  "commands": [{"t": 0, "cmd": "select w01"}]
+  "workers": [
+    "w01",
+    "w02",
+    "w03",
+    "w04",
+    "w09",
+    "w10",
+    "w11",
+    "w12",
+    "w13"
+  ],
+  "commands": [
+    {
+      "t": 0,
+      "cmd": "select w01"
+    }
+  ]
 }

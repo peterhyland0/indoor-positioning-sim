@@ -86,6 +86,8 @@ struct FShiftRow : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) FName RouteName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 TargetFloor = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) float StartOffsetSec = 0.f;
+	/** Cosmetic + future per-trade rules: Labourer, Electrician, Plumber, Ironworker, Carpenter, Supervisor. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) FName Trade = TEXT("Labourer");
 };
 
 /** One row of DT_Routes: a single segment of a named route. */

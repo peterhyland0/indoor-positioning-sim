@@ -31,6 +31,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Worker") EAppState AppState = EAppState::Foreground;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Worker") FName RouteName;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Worker") int32 TargetFloor = 1;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Worker") FName Trade;
 
 	/** Ground truth, recomputed every step. Scoring only - estimators must not read it. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Truth") int32 TruthFloor = 0;
@@ -62,7 +63,10 @@ private:
 	void RefreshLabel();
 
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UCapsuleComponent> Capsule;
-	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> Body;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> Body;   // legs / trousers
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> Torso;  // hi-vis vest
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> Head;
+	UPROPERTY(VisibleAnywhere) TObjectPtr<UStaticMeshComponent> Hat;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UTextRenderComponent> Label;
 	UPROPERTY(VisibleAnywhere) TObjectPtr<UPhoneSensorsComponent> Sensors;
 

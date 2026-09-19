@@ -57,7 +57,8 @@ def make_folders():
 
 
 # ---------------------------------------------------------------- materials
-def make_material(name, rgb, emissive=0.0):
+def make_material(name, rgb, emissive=0.0, roughness=0.8, metallic=0.0, noise=0.0, noise_scale=0.02):
+    """Flat-colour material with optional procedural grain (noise multiplies base colour by 1 +/- noise)."""
     path = f"/Game/Sim/Materials/{name}"
     existing = unreal.load_asset(path)  # load_asset is reliable even during PIE; never overwrite
     if existing:
@@ -66,11 +67,29 @@ def make_material(name, rgb, emissive=0.0):
     tools = unreal.AssetToolsHelpers.get_asset_tools()
     mat = tools.create_asset(name, "/Game/Sim/Materials", unreal.Material, factory)
     mel = unreal.MaterialEditingLibrary
-    col = mel.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -300, 0)
+    col = mel.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -600, 0)
     col.set_editor_property("constant", unreal.LinearColor(*rgb, 1.0))
-    mel.connect_material_property(col, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    if noise > 0:
+        n = mel.create_material_expression(mat, unreal.MaterialExpressionNoise, -600, 250)
+        n.set_editor_property("scale", noise_scale)
+        n.set_editor_property("levels", 4)
+        n.set_editor_property("output_min", 1.0 - noise)
+        n.set_editor_property("output_max", 1.0 + noise)
+        mul = mel.create_material_expression(mat, unreal.MaterialExpressionMultiply, -300, 100)
+        mel.connect_material_expressions(col, "", mul, "A")
+        mel.connect_material_expressions(n, "", mul, "B")
+        mel.connect_material_property(mul, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    else:
+        mel.connect_material_property(col, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    r = mel.create_material_expression(mat, unreal.MaterialExpressionConstant, -300, 400)
+    r.set_editor_property("r", roughness)
+    mel.connect_material_property(r, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    if metallic > 0:
+        m = mel.create_material_expression(mat, unreal.MaterialExpressionConstant, -300, 500)
+        m.set_editor_property("r", metallic)
+        mel.connect_material_property(m, "", unreal.MaterialProperty.MP_METALLIC)
     if emissive > 0:
-        em = mel.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -300, 200)
+        em = mel.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -300, 600)
         em.set_editor_property("constant", unreal.LinearColor(rgb[0] * emissive, rgb[1] * emissive, rgb[2] * emissive, 1.0))
         mel.connect_material_property(em, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     mel.recompile_material(mat)
@@ -78,16 +97,60 @@ def make_material(name, rgb, emissive=0.0):
     return mat
 
 
-def make_materials():
-    mats = {
-        "M_Concrete": make_material("M_Concrete", (0.45, 0.45, 0.45)),
-        "M_ShaftCage": make_material("M_ShaftCage", (0.85, 0.75, 0.2)),
+# Material name used by tower_geometry.Box.material -> (asset name, args)
+MATERIALS = {
+    "Concrete":     ("M_Concrete",     dict(rgb=(0.42, 0.41, 0.39), roughness=0.95, noise=0.18, noise_scale=0.01)),
+    "Open":         ("M_ShaftCage",    dict(rgb=(0.85, 0.72, 0.18), roughness=0.5, metallic=0.6)),
+    "Steel":        ("M_Steel",        dict(rgb=(0.32, 0.34, 0.36), roughness=0.45, metallic=0.85)),
+    "Drywall":      ("M_Drywall",      dict(rgb=(0.80, 0.78, 0.72), roughness=0.9, noise=0.06, noise_scale=0.02)),
+    "Gravel":       ("M_Gravel",       dict(rgb=(0.36, 0.33, 0.28), roughness=1.0, noise=0.25, noise_scale=0.03)),
+    "Hoarding":     ("M_Hoarding",     dict(rgb=(0.10, 0.28, 0.16), roughness=0.7)),
+    "Cabin":        ("M_Cabin",        dict(rgb=(0.86, 0.87, 0.85), roughness=0.55, metallic=0.2)),
+    "Timber":       ("M_Timber",       dict(rgb=(0.62, 0.45, 0.25), roughness=0.85, noise=0.15, noise_scale=0.05)),
+    "Plasterboard": ("M_Plasterboard", dict(rgb=(0.75, 0.74, 0.70), roughness=0.9)),
+    "Blocks":       ("M_Blocks",       dict(rgb=(0.55, 0.55, 0.52), roughness=0.95, noise=0.2, noise_scale=0.04)),
+}
+
+# Asset overrides (Fab / Quixel): Data/asset_overrides.json maps a material name above, or a role
+# ("hardhat_mesh", "worker_mesh", "pallet_mesh", "slab_material", ...) to an asset path. Anything listed
+# there and present on disk replaces the primitive/flat-colour fallback. See unreal/README.md.
+def load_overrides():
+    path = os.path.join(DATA_DIR, "asset_overrides.json")
+    if not os.path.exists(path):
+        return {}
+    import json
+    with open(path) as f:
+        raw = json.load(f)
+    out = {}
+    for key, asset_path in raw.items():
+        if key.startswith("_"):
+            continue
+        asset = unreal.load_asset(asset_path) if asset_path else None
+        if asset:
+            out[key] = asset
+        else:
+            log(f"override '{key}' -> {asset_path}: asset not found, using fallback")
+    if out:
+        log(f"asset overrides active: {sorted(out)}")
+    return out
+
+
+def make_materials(overrides):
+    mats = {}
+    for key, (name, args) in MATERIALS.items():
+        mats[key] = overrides.get(key) or make_material(name, **args)
+    mats.update({
         "M_BeaconAlive": make_material("M_BeaconAlive", (0.1, 0.9, 0.2), emissive=3.0),
-        "M_BeaconLow": make_material("M_BeaconLow", (1.0, 0.65, 0.0), emissive=3.0),
-        "M_BeaconDead": make_material("M_BeaconDead", (0.9, 0.1, 0.1), emissive=3.0),
-        "M_Reference": make_material("M_Reference", (0.2, 0.5, 1.0), emissive=2.0),
-        "M_Worker": make_material("M_Worker", (0.9, 0.9, 0.9)),
-    }
+        "M_BeaconLow":   make_material("M_BeaconLow", (1.0, 0.65, 0.0), emissive=3.0),
+        "M_BeaconDead":  make_material("M_BeaconDead", (0.9, 0.1, 0.1), emissive=3.0),
+        "M_Reference":   make_material("M_Reference", (0.2, 0.5, 1.0), emissive=2.0),
+        "M_Worker":      make_material("M_Worker", (0.25, 0.28, 0.35), roughness=0.9),           # work trousers
+        "M_HiVis":       make_material("M_HiVis", (1.0, 0.45, 0.02), roughness=0.7),             # vest
+        "M_HiVisYellow": make_material("M_HiVisYellow", (0.95, 0.9, 0.05), roughness=0.7),
+        "M_HardHat":     make_material("M_HardHat", (0.95, 0.95, 0.9), roughness=0.35),
+        "M_HardHatYellow": make_material("M_HardHatYellow", (0.95, 0.8, 0.05), roughness=0.35),
+        "M_Skin":        make_material("M_Skin", (0.75, 0.58, 0.45), roughness=0.8),
+    })
     log("materials ok")
     return mats
 
@@ -109,6 +172,9 @@ def clear_generated():
             actor_ss.destroy_actor(a)
             n += 1
     log(f"removed {n} previously generated actors")
+
+
+RADIO_BLOCKING = {"Concrete", "Drywall"}
 
 
 def spawn_box(box: tg.Box, mesh, mat, profile="RadioBlocker", folder="Tower"):
@@ -141,15 +207,24 @@ def spawn_text(text, pos_m, size=120.0, folder="Tower/Labels", color=(1, 1, 1)):
     return actor
 
 
+FOLDER_BY_TAG = {"Slab": "Tower/Slabs", "ShaftWall": "Tower/Hoist", "Mast": "Tower/Hoist", "Column": "Tower/Structure",
+                 "Rail": "Tower/EdgeProtection", "Partition": "Tower/FitOut", "Clutter": "Site/Clutter",
+                 "Ground": "Site", "Fence": "Site", "Hut": "Site", "Crane": "Site/Crane"}
+
+
 def build_tower(spec: tg.TowerSpec, mats):
     cube = unreal.load_asset("/Engine/BasicShapes/Cube")
+    counts = {}
     for box in tg.all_boxes(spec):
-        mat = mats["M_ShaftCage"] if box.material == "Open" else mats["M_Concrete"]
-        profile = "RadioTransparent" if box.material == "Open" else "RadioBlocker"
-        spawn_box(box, cube, mat, profile, folder="Tower/Slabs" if "Slab" in box.tags else "Tower/Shaft")
+        mat = mats.get(box.material) or mats["Concrete"]
+        profile = "RadioBlocker" if box.material in RADIO_BLOCKING else "RadioTransparent"
+        actor = spawn_box(box, cube, mat, profile, folder=FOLDER_BY_TAG.get(box.tags[0], "Tower"))
+        if box.tags[0] in ("Rail", "Mast", "Clutter", "Fence"):
+            actor.static_mesh_component.set_cast_shadow(box.tags[0] != "Rail")  # 700+ rail shadows cost a lot
+        counts[box.tags[0]] = counts.get(box.tags[0], 0) + 1
     for f in range(0, spec.num_floors + 1):
         spawn_text("LOBBY" if f == 0 else f"F{f}", tg.floor_label(spec, f))
-    log(f"tower built: {spec.num_floors} floors + lobby")
+    log(f"tower built: {spec.num_floors} floors + lobby, {counts}")
 
 
 def build_beacon_markers(spec: tg.TowerSpec, mats):
@@ -194,13 +269,15 @@ def build_extras(spec: tg.TowerSpec, mats):
 
     # Light + sky so the grey boxes are visible. Both MOVABLE: fully dynamic lighting, no lightmap
     # build, no "LIGHTING NEEDS TO BE REBUILT" banner.
-    sun = actor_ss.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, h * M_TO_CM), unreal.Rotator(roll=0, pitch=-50, yaw=30))
+    sun = actor_ss.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, h * M_TO_CM), unreal.Rotator(roll=0, pitch=-38, yaw=-35))  # late-morning, from the south-west so the open face is lit
     sun.set_actor_label("Sun")
     sun.set_folder_path("Tower/Lighting")
     sun.set_editor_property("tags", [unreal.Name(GEN_TAG)])
     try:
         sun.light_component.set_mobility(unreal.ComponentMobility.MOVABLE)
-        sun.light_component.set_editor_property("intensity", 6.0)
+        sun.light_component.set_editor_property("intensity", 7.0)
+        sun.light_component.set_editor_property("light_color", unreal.Color(255, 244, 224, 255))
+        sun.light_component.set_editor_property("cast_shadows", True)
     except Exception as e:  # noqa: BLE001
         log(f"sun props not set: {e}")
     sky = actor_ss.spawn_actor_from_class(unreal.SkyLight, unreal.Vector(0, 0, h * M_TO_CM))
@@ -219,6 +296,20 @@ def build_extras(spec: tg.TowerSpec, mats):
     atmo.set_actor_label("SkyAtmosphere")
     atmo.set_folder_path("Tower/Lighting")
     atmo.set_editor_property("tags", [unreal.Name(GEN_TAG)])
+
+    # Haze for depth: exponential height fog, light.
+    fog = actor_ss.spawn_actor_from_class(unreal.ExponentialHeightFog, unreal.Vector(0, 0, 0))
+    fog.set_actor_label("Fog")
+    fog.set_folder_path("Tower/Lighting")
+    fog.set_editor_property("tags", [unreal.Name(GEN_TAG)])
+    try:
+        fc = fog.component
+        fc.set_editor_property("fog_density", 0.012)
+        fc.set_editor_property("fog_height_falloff", 0.18)
+        fc.set_editor_property("start_distance", 3000.0)
+        fc.set_editor_property("fog_inscattering_luminance", unreal.LinearColor(0.62, 0.70, 0.82, 1.0))
+    except Exception as e:  # noqa: BLE001
+        log(f"fog props not set: {e}")
 
     # Tell the world there is no precomputed lighting to build.
     try:
@@ -340,7 +431,8 @@ def main():
         pass
     spec = tg.TowerSpec()
     make_folders()
-    mats = make_materials()
+    overrides = load_overrides()
+    mats = make_materials(overrides)
     open_or_create_level()
     clear_generated()
     build_tower(spec, mats)

@@ -100,12 +100,19 @@ void ASimBuilding::EndPlay(const EEndPlayReason::Type Reason)
 void ASimBuilding::SpawnFixtures()
 {
 	UWorld* World = GetWorld();
-	const FVector4& Sh = Config->HoistShaft;
-	Hoist = World->SpawnActor<ASimHoist>(FVector((Sh.X + Sh.Z / 2.f) * 100.f, (Sh.Y + Sh.W / 2.f) * 100.f, -10.f), FRotator::ZeroRotator);
-	Hoist->CarXY = FVector2D(Sh.X + Sh.Z / 2.f, Sh.Y + Sh.W / 2.f);
+	TArray<FVector4> Shafts = { Config->HoistShaft };
+	if (Config->HoistShaft2.Z > 0.f && Config->HoistShaft2.W > 0.f) Shafts.Add(Config->HoistShaft2);
+	for (int32 i = 0; i < Shafts.Num(); ++i)
+	{
+		const FVector4& Sh = Shafts[i];
+		ASimHoist* H = World->SpawnActor<ASimHoist>(FVector((Sh.X + Sh.Z / 2.f) * 100.f, (Sh.Y + Sh.W / 2.f) * 100.f, -10.f), FRotator::ZeroRotator);
+		H->CarXY = FVector2D(Sh.X + Sh.Z / 2.f, Sh.Y + Sh.W / 2.f);
+		H->ShaftDepthM = Sh.W;
 #if WITH_EDITOR
-	Hoist->SetActorLabel(TEXT("Hoist"));
+		H->SetActorLabel(FString::Printf(TEXT("Hoist%d"), i + 1));
 #endif
+		Hoists.Add(H);
+	}
 	Reference = World->SpawnActor<ASimReferenceStation>(FVector(100.f, 1900.f, 120.f), FRotator::ZeroRotator);
 #if WITH_EDITOR
 	Reference->SetActorLabel(TEXT("ReferenceStation"));
@@ -168,7 +175,7 @@ void ASimBuilding::SpawnWorkers()
 		}
 		const FVector Jitter(FMath::Cos(i * 1.3f) * 80.f, FMath::Sin(i * 1.3f) * 80.f, 0.f);
 		ASimWorker* W = GetWorld()->SpawnActor<ASimWorker>(Entrance + Jitter, FRotator::ZeroRotator);
-		W->InitFromShift(*Row, this, Hoist);
+		W->InitFromShift(*Row, this, Hoists.IsValidIndex(i % Hoists.Num()) ? Hoists[i % Hoists.Num()] : nullptr);
 		W->GetSensors()->ResetCadence(Config);
 		Workers.Add(W);
 		WorkersById.Add(W->WorkerId, W);
@@ -200,9 +207,9 @@ void ASimBuilding::SingleStep()
 	{
 		RunCommand(Scenario[NextScenarioIndex++].Cmd);
 	}
-	if (Hoist)
+	for (ASimHoist* H : Hoists)
 	{
-		Hoist->Step(Dt, Config);
+		H->Step(Dt, Config);
 	}
 	for (ASimWorker* W : Workers)
 	{
@@ -256,8 +263,30 @@ ASimWorker* ASimBuilding::FindWorker(FName Id) const
 	return W ? *W : nullptr;
 }
 
-FVector ASimBuilding::WaypointWorld(FName Name, int32 Floor) const
+ASimHoist* ASimBuilding::NearestHoist(const FVector& Cm) const
 {
+	ASimHoist* Best = nullptr;
+	float BestD = TNumericLimits<float>::Max();
+	for (ASimHoist* H : Hoists)
+	{
+		const float D = FVector2D::Distance(FVector2D(Cm.X, Cm.Y), H->DoorXYcm());
+		if (D < BestD) { BestD = D; Best = H; }
+	}
+	return Best;
+}
+
+FVector ASimBuilding::WaypointWorld(FName Name, int32 Floor, const ASimHoist* Hoist) const
+{
+	const FString N = Name.ToString();
+	if (N.Contains(TEXT("HoistDoor")))
+	{
+		const ASimHoist* H = Hoist ? Hoist : (Hoists.Num() ? Hoists[0] : nullptr);
+		if (H)
+		{
+			const FVector2D D = H->DoorXYcm();
+			return FVector(D.X, D.Y, Config->FloorZCm(Floor) + CapsuleHalfHeightCm);
+		}
+	}
 	float X = 15.f, Y = 10.f;
 	if (Waypoints)
 	{
@@ -300,6 +329,7 @@ FVector ASimBuilding::ClampToFloorPlate(const FVector& Cm) const
 		}
 	};
 	Avoid(Config->HoistShaft);
+	if (Config->HoistShaft2.Z > 0.f) Avoid(Config->HoistShaft2);
 	Avoid(Config->Stairwell);
 	return Out;
 }
@@ -441,7 +471,7 @@ bool ASimBuilding::RunCommand(const FString& Command)
 	else if (Verb == TEXT("list"))
 	{
 		for (const ASimBeacon* B : Beacons) UE_LOG(LogSim, Log, TEXT("  beacon %s F%d %s battery %.2f"), *B->BeaconId.ToString(), B->Floor, B->bAlive ? TEXT("alive") : TEXT("dead"), B->Battery);
-		for (const ASimWorker* W : Workers) UE_LOG(LogSim, Log, TEXT("  worker %s F%d %s"), *W->WorkerId.ToString(), W->TruthFloor, *W->RouteName.ToString());
+		for (const ASimWorker* W : Workers) UE_LOG(LogSim, Log, TEXT("  worker %s F%d %s %s"), *W->WorkerId.ToString(), W->TruthFloor, *W->RouteName.ToString(), *W->Trade.ToString());
 	}
 	else
 	{

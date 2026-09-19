@@ -84,7 +84,9 @@ float UPhoneSensorsComponent::ComputeRssi(const ASimBeacon* Beacon, const FVecto
 			Seen.Add(A);
 			for (const FName& Tag : A->Tags)
 			{
-				const float Loss = Config ? Config->SlabLossDb * (Tag == TEXT("Concrete")) +
+				// Tag order matters: a column is tagged Column first, Concrete second.
+				const float Loss = Config ? Config->ColumnLossDb * (Tag == TEXT("Column")) +
+				                            Config->SlabLossDb * (Tag == TEXT("Concrete")) +
 				                            Config->DrywallLossDb * (Tag == TEXT("Drywall")) +
 				                            Config->GlassLossDb * (Tag == TEXT("Glass")) : 0.f;
 				if (Loss > 0.f)

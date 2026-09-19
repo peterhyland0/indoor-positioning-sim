@@ -21,6 +21,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building") float SlabThickness = 0.25f;
 	/** Hoist shaft hole in every slab: x, y, width, depth (metres). Must match Scripts/tower_geometry.py. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building") FVector4 HoistShaft = FVector4(14.f, 8.f, 3.f, 3.f);
+	/** Optional second hoist shaft (x, y, w, d); all zero = none. Must match Scripts/tower_geometry.py. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building") FVector4 HoistShaft2 = FVector4(26.f, 8.f, 3.f, 3.f);
 	/** Stairwell hole in every slab: x, y, width, depth (metres). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building") FVector4 Stairwell = FVector4(1.f, 1.f, 2.f, 4.f);
 	/** Fixed simulation step, seconds. Everything advances in these increments. */
@@ -30,6 +32,8 @@ public:
 	/** Reinforced concrete slab at 2.4 GHz; published 15-25 dB. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RF") float SlabLossDb = 18.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RF") float DrywallLossDb = 4.f;
+	/** A structural column in the line of sight (0.45 m of reinforced concrete). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RF") float ColumnLossDb = 10.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RF") float GlassLossDb = 2.f;
 	/** Phone in pocket, body between phone and beacon. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RF") float BodyLossDb = 8.f;

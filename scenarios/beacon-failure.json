@@ -1,11 +1,36 @@
 {
   "description": "Honest crew on F12 while that floor's beacons degrade: low battery, dead, the other one kicked 8 m, then revived.",
-  "workers": ["w01", "w02", "w03", "w04"],
+  "workers": [
+    "w01",
+    "w02",
+    "w03",
+    "w04",
+    "w09",
+    "w10",
+    "w11",
+    "w12",
+    "w13"
+  ],
   "commands": [
-    {"t": 0,   "cmd": "select w01"},
-    {"t": 120, "cmd": "battery F12-A 0.1"},
-    {"t": 300, "cmd": "killbeacon F12-A"},
-    {"t": 420, "cmd": "nudge F12-B 8"},
-    {"t": 600, "cmd": "revivebeacon F12-A"}
+    {
+      "t": 0,
+      "cmd": "select w01"
+    },
+    {
+      "t": 120,
+      "cmd": "battery F12-A 0.1"
+    },
+    {
+      "t": 300,
+      "cmd": "killbeacon F12-A"
+    },
+    {
+      "t": 420,
+      "cmd": "nudge F12-B 8"
+    },
+    {
+      "t": 600,
+      "cmd": "revivebeacon F12-A"
+    }
   ]
 }

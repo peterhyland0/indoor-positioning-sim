@@ -24,20 +24,35 @@ ASimWorker::ASimWorker()
 	Capsule->SetCollisionProfileName(TEXT("RadioTransparent"));
 	SetRootComponent(Capsule);
 
-	Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
-	Body->SetupAttachment(Capsule);
+	// A blocky but readable figure: trousers (cylinder), hi-vis torso (box), head (sphere), hard hat (sphere).
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cyl(TEXT("/Engine/BasicShapes/Cylinder"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> Mat(TEXT("/Game/Sim/Materials/M_Worker"));
-	if (Cyl.Succeeded()) Body->SetStaticMesh(Cyl.Object);
-	if (Mat.Succeeded()) Body->SetMaterial(0, Mat.Object);
-	Body->SetRelativeScale3D(FVector(1.1f, 1.1f, 1.8f)); // oversized on purpose: readable from the cutaway camera ~100 m away
-	Body->SetRelativeLocation(FVector(0.f, 0.f, -5.f));
-	Body->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	Body->SetCastShadow(false);
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MatTrousers(TEXT("/Game/Sim/Materials/M_Worker"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MatVest(TEXT("/Game/Sim/Materials/M_HiVis"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MatSkin(TEXT("/Game/Sim/Materials/M_Skin"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MatHat(TEXT("/Game/Sim/Materials/M_HardHat"));
+	auto Part = [&](const TCHAR* Name, UStaticMesh* Mesh, UMaterialInterface* Mat, FVector Loc, FVector Scale) -> UStaticMeshComponent*
+	{
+		UStaticMeshComponent* C = CreateDefaultSubobject<UStaticMeshComponent>(Name);
+		C->SetupAttachment(Capsule);
+		if (Mesh) C->SetStaticMesh(Mesh);
+		if (Mat) C->SetMaterial(0, Mat);
+		C->SetRelativeLocation(Loc);
+		C->SetRelativeScale3D(Scale);
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetCastShadow(true);
+		return C;
+	};
+	// Capsule half-height 90 cm; feet at -90. Basic shapes are 100 cm.
+	Body  = Part(TEXT("Body"),  Cyl.Object,    MatTrousers.Object, FVector(0, 0, -45.f), FVector(0.42f, 0.42f, 0.90f));
+	Torso = Part(TEXT("Torso"), Cube.Object,   MatVest.Object,     FVector(0, 0, 22.f),  FVector(0.50f, 0.32f, 0.62f));
+	Head  = Part(TEXT("Head"),  Sphere.Object, MatSkin.Object,     FVector(0, 0, 66.f),  FVector(0.24f, 0.24f, 0.26f));
+	Hat   = Part(TEXT("Hat"),   Sphere.Object, MatHat.Object,      FVector(0, 0, 74.f),  FVector(0.30f, 0.30f, 0.20f));
 
 	Label = CreateDefaultSubobject<UTextRenderComponent>(TEXT("Label"));
 	Label->SetupAttachment(Capsule);
-	Label->SetRelativeLocation(FVector(0.f, -70.f, CapsuleHalfHeightCm + 60.f));
+	Label->SetRelativeLocation(FVector(0.f, -70.f, CapsuleHalfHeightCm + 75.f));
 	Label->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // readable from the cutaway camera (looking +Y)
 	Label->SetWorldSize(110.f);
 	Label->SetHorizontalAlignment(EHTA_Center);
@@ -56,8 +71,21 @@ void ASimWorker::InitFromShift(const FShiftRow& Row, ASimBuilding* InBuilding, A
 	AppState = Row.AppState;
 	RouteName = Row.RouteName;
 	TargetFloor = Row.TargetFloor;
+	Trade = Row.Trade;
 	Building = InBuilding;
 	Hoist = InHoist;
+	// Hard hat colour by trade (loosely the common site convention); vest yellow for supervisors.
+	const FString T = Trade.ToString().ToLower();
+	auto Load = [](const TCHAR* Path) { return LoadObject<UMaterialInterface>(nullptr, Path); };
+	if (T.Contains(TEXT("super")) || T.Contains(TEXT("manager")))
+	{
+		if (UMaterialInterface* M = Load(TEXT("/Game/Sim/Materials/M_HardHat"))) Hat->SetMaterial(0, M);
+		if (UMaterialInterface* M = Load(TEXT("/Game/Sim/Materials/M_HiVisYellow"))) Torso->SetMaterial(0, M);
+	}
+	else if (UMaterialInterface* M = Load(TEXT("/Game/Sim/Materials/M_HardHatYellow")))
+	{
+		Hat->SetMaterial(0, M);
+	}
 	Segments = Building->GetRoute(RouteName);
 	SegIndex = -1;
 	Mode = EWorkerMode::Waiting;
@@ -144,7 +172,7 @@ void ASimWorker::NextSegment(USimConfig* Config)
 	switch (Seg.SegmentType)
 	{
 	case ERouteSegment::WalkTo:
-		BeginWalkTo(Building->WaypointWorld(FName(*Seg.Param), TruthFloor));
+		BeginWalkTo(Building->WaypointWorld(FName(*Seg.Param), TruthFloor, Hoist));
 		break;
 	case ERouteSegment::WaitFor:
 		Timer = FCString::Atof(*Seg.Param);
@@ -290,7 +318,7 @@ void ASimWorker::OnHoistArrived(int32 Floor)
 	// Step off: 1.5 m out of the car toward the floor door, then continue the route.
 	if (Building)
 	{
-		const FVector Door = Building->WaypointWorld(TEXT("FloorHoistDoor"), Floor);
+		const FVector Door = Building->WaypointWorld(TEXT("FloorHoistDoor"), Floor, Hoist);
 		SetActorLocation(Door);
 		NextSegment(Building->GetConfig());
 	}

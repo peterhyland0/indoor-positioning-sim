@@ -1,5 +1,19 @@
 {
   "description": "Two workers clock in from the lobby and linger 10 min before going up - the Anfield Interiors story - alongside two honest ones for contrast.",
-  "workers": ["w01", "w02", "w05", "w06"],
-  "commands": [{"t": 0, "cmd": "select w05"}]
+  "workers": [
+    "w01",
+    "w02",
+    "w05",
+    "w06",
+    "w09",
+    "w10",
+    "w13",
+    "w14"
+  ],
+  "commands": [
+    {
+      "t": 0,
+      "cmd": "select w05"
+    }
+  ]
 }

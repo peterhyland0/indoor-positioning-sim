@@ -1,0 +1,10 @@
+{
+  "_comment": "Copy to asset_overrides.json and fill in asset paths from assets you downloaded via Fab (Content Browser -> right-click asset -> Copy Reference, strip the type prefix). Any key left out or pointing at a missing asset falls back to the flat-colour primitive. Rerun Scripts/bootstrap.py afterwards.",
+  "Concrete":     "/Game/Fab/Megascans/Surfaces/Concrete_Rough/MI_Concrete_Rough",
+  "Drywall":      "/Game/Fab/Megascans/Surfaces/Plaster/MI_Plaster",
+  "Gravel":       "/Game/Fab/Megascans/Surfaces/Gravel/MI_Gravel",
+  "Steel":        "/Game/Fab/Megascans/Surfaces/Steel_Painted/MI_Steel_Painted",
+  "Hoarding":     "/Game/Fab/Megascans/Surfaces/Plywood/MI_Plywood",
+  "Timber":       "/Game/Fab/Megascans/Surfaces/Wood_Planks/MI_Wood_Planks",
+  "Cabin":        ""
+}

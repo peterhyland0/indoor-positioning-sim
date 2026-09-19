@@ -68,6 +68,23 @@ Content/                       generated assets (.uasset/.umap via LFS)
 
 Architecture, controls, commands, headless flags and build instructions: [`docs/unreal-sim.md`](../docs/unreal-sim.md).
 
+## Site dressing and real assets
+
+`Scripts/tower_geometry.py` generates the whole site from code: slabs with two hoist shafts and a
+stairwell, structural columns (which attenuate radio: `ColumnLossDb`), edge-protection rails, drywall
+partitions on floors 1–6 (fit-out stage; bare shell above), material stacks, ground, hoarding fence, site
+huts, vans, a skip and a tower crane. Workers are built from primitives with a hi-vis vest and a hard hat
+coloured by trade (`DT_Shifts.csv` → `Trade`). Everything is flat-colour materials with procedural grain,
+so the project needs no downloaded content.
+
+**Real textures/meshes from Fab (optional):** in the editor, open Fab (Window → Fab), search Quixel
+Megascans for surfaces such as *concrete rough*, *plaster*, *gravel*, *painted steel*, *plywood*, *wood
+planks* and click *Add to project* (free). Then copy
+`Data/asset_overrides.example.json` to `Data/asset_overrides.json`, paste each material instance's
+reference path (right-click the asset → Copy Reference, drop the `MaterialInstanceConstant'…'` wrapper),
+and rerun `bootstrap.py`. Keys are the material names in `tower_geometry.py`; unknown or missing
+entries fall back to the built-in material. The file is gitignored (paths are local to your project).
+
 ## Default sensor-model constants (BP_SimConfig)
 
 | Name | Default | Why |
@@ -75,6 +92,7 @@ Architecture, controls, commands, headless flags and build instructions: [`docs/
 | `FloorHeight` | 3.8 m | typical NYC commercial slab-to-slab |
 | `SlabLossDb` | 18 dB | reinforced concrete floor, 2.4 GHz: published 15–25 dB |
 | `DrywallLossDb` | 4 dB | gypsum partition ~3–5 dB |
+| `ColumnLossDb` | 10 dB | a 0.45 m reinforced-concrete column in the line of sight |
 | `GlassLossDb` | 2 dB | |
 | `BodyLossDb` | 8 dB | phone in pocket, body between phone and beacon: 5–15 dB |
 | `PathLossExponent` | 2.2 | indoor LOS 1.8–2.2; open slab is near-LOS |

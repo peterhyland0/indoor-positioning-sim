@@ -36,11 +36,14 @@ public:
 	const TArray<ASimWorker*>& GetWorkers() const { return Workers; }
 	UFUNCTION(BlueprintPure, Category = "Sim") ASimBeacon* FindBeacon(FName Id) const;
 	UFUNCTION(BlueprintPure, Category = "Sim") ASimWorker* FindWorker(FName Id) const;
-	UFUNCTION(BlueprintPure, Category = "Sim") ASimHoist* GetHoist() const { return Hoist; }
+	UFUNCTION(BlueprintPure, Category = "Sim") ASimHoist* GetHoist() const { return Hoists.Num() ? Hoists[0] : nullptr; }
+	const TArray<ASimHoist*>& GetHoists() const { return Hoists; }
+	/** The hoist nearest to a world position (workers pick the closest one). */
+	ASimHoist* NearestHoist(const FVector& Cm) const;
 	UFUNCTION(BlueprintPure, Category = "Sim") ASimWorker* GetSelectedWorker() const { return SelectedWorker; }
 
-	/** World cm of a named waypoint on a floor (capsule centre height). */
-	FVector WaypointWorld(FName Name, int32 Floor) const;
+	/** World cm of a named waypoint on a floor (capsule centre height). HoistDoor names resolve to `Hoist`'s door. */
+	FVector WaypointWorld(FName Name, int32 Floor, const ASimHoist* Hoist = nullptr) const;
 	FVector StairwellCentreCm() const;
 	/** Keep a wander target inside the slab and out of the shaft/stair holes. */
 	FVector ClampToFloorPlate(const FVector& Cm) const;
@@ -80,7 +83,7 @@ private:
 	UPROPERTY() TObjectPtr<USimConfig> Config;
 	UPROPERTY() TArray<TObjectPtr<ASimBeacon>> Beacons;
 	UPROPERTY() TArray<TObjectPtr<ASimWorker>> Workers;
-	UPROPERTY() TObjectPtr<ASimHoist> Hoist;
+	UPROPERTY() TArray<TObjectPtr<ASimHoist>> Hoists;
 	UPROPERTY() TObjectPtr<ASimReferenceStation> Reference;
 	UPROPERTY() TObjectPtr<ASimWorker> SelectedWorker;
 
