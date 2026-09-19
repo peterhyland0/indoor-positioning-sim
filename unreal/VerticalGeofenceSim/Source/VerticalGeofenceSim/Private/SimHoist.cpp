@@ -27,8 +27,8 @@ ASimHoist::ASimHoist()
 		P->SetupAttachment(Car);
 		if (CubeMesh.Succeeded()) P->SetStaticMesh(CubeMesh.Object);
 		if (Steel.Succeeded()) P->SetMaterial(0, Steel.Object);
-		// Car is scaled (2.8, 2.8, 0.2); children inherit, so counter-scale.
-		P->SetRelativeScale3D(FVector(Scale.X / 2.8f, Scale.Y / 2.8f, Scale.Z / 0.2f));
+		// Car is scaled (2.8, 2.8, 0.2); children inherit, so counter-scale. Sizes are in cm; the cube is 100 cm.
+		P->SetRelativeScale3D(FVector(Scale.X / 100.f / 2.8f, Scale.Y / 100.f / 2.8f, Scale.Z / 100.f / 0.2f));
 		P->SetRelativeLocation(FVector(RelLoc.X / 2.8f, RelLoc.Y / 2.8f, RelLoc.Z / 0.2f));
 		P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		P->SetCastShadow(false);

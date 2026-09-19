@@ -144,7 +144,7 @@ def make_materials(overrides):
         "M_BeaconLow":   make_material("M_BeaconLow", (1.0, 0.65, 0.0), emissive=3.0),
         "M_BeaconDead":  make_material("M_BeaconDead", (0.9, 0.1, 0.1), emissive=3.0),
         "M_Reference":   make_material("M_Reference", (0.2, 0.5, 1.0), emissive=2.0),
-        "M_Worker":      make_material("M_Worker", (0.25, 0.28, 0.35), roughness=0.9),           # work trousers
+        "M_Trousers":    make_material("M_Trousers", (0.22, 0.24, 0.30), roughness=0.9),       # work trousers
         "M_HiVis":       make_material("M_HiVis", (1.0, 0.45, 0.02), roughness=0.7),             # vest
         "M_HiVisYellow": make_material("M_HiVisYellow", (0.95, 0.9, 0.05), roughness=0.7),
         "M_HardHat":     make_material("M_HardHat", (0.95, 0.95, 0.9), roughness=0.35),
@@ -286,7 +286,7 @@ def build_extras(spec: tg.TowerSpec, mats):
     sky.set_editor_property("tags", [unreal.Name(GEN_TAG)])
     try:
         sky.light_component.set_mobility(unreal.ComponentMobility.MOVABLE)
-        sky.light_component.set_editor_property("intensity", 1.5)
+        sky.light_component.set_editor_property("intensity", 2.5)
         sky.light_component.set_editor_property("real_time_capture", True)
     except Exception as e:  # noqa: BLE001
         log(f"sky light props not set: {e}")
@@ -363,7 +363,7 @@ LEGACY_ASSETS = [f"/Game/Data/{n}" for n in (
     "S_BeaconRow", "S_MaterialRow", "S_ShiftRow", "S_RouteRow", "S_WaypointRow", "S_ConfigRow",
     "S_Scan", "S_RegionEvent",
     "E_Platform", "E_PhoneState", "E_AppState", "E_RouteSegment", "E_BeaconState",
-)]
+)] + ["/Game/Sim/Materials/M_Worker"]  # superseded by M_Trousers
 
 
 def import_data_tables():
@@ -423,12 +423,16 @@ def make_sim_config():
 
 # ---------------------------------------------------------------- main
 def main():
-    try:
-        if unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).is_in_play_in_editor():
-            log("STOP Play-In-Editor first (red square in the toolbar), then rerun. Nothing changed.")
-            return
-    except Exception:  # noqa: BLE001
-        pass
+    # PIE guard - only meaningful in the interactive editor (the call segfaults in the headless commandlet,
+    # which has no level viewport). Detect the commandlet via the engine command line.
+    headless = "-run=" in unreal.SystemLibrary.get_command_line().lower()
+    if not headless:
+        try:
+            if unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).is_in_play_in_editor():
+                log("STOP Play-In-Editor first (red square in the toolbar), then rerun. Nothing changed.")
+                return
+        except Exception:  # noqa: BLE001
+            pass
     spec = tg.TowerSpec()
     make_folders()
     overrides = load_overrides()

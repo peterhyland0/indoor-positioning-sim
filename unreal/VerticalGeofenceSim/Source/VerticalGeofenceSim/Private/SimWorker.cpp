@@ -28,7 +28,7 @@ ASimWorker::ASimWorker()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cyl(TEXT("/Engine/BasicShapes/Cylinder"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MatTrousers(TEXT("/Game/Sim/Materials/M_Worker"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MatTrousers(TEXT("/Game/Sim/Materials/M_Trousers"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MatVest(TEXT("/Game/Sim/Materials/M_HiVis"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MatSkin(TEXT("/Game/Sim/Materials/M_Skin"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MatHat(TEXT("/Game/Sim/Materials/M_HardHat"));
@@ -52,9 +52,9 @@ ASimWorker::ASimWorker()
 
 	Label = CreateDefaultSubobject<UTextRenderComponent>(TEXT("Label"));
 	Label->SetupAttachment(Capsule);
-	Label->SetRelativeLocation(FVector(0.f, -70.f, CapsuleHalfHeightCm + 75.f));
+	Label->SetRelativeLocation(FVector(0.f, -40.f, CapsuleHalfHeightCm + 45.f));
 	Label->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // readable from the cutaway camera (looking +Y)
-	Label->SetWorldSize(110.f);
+	Label->SetWorldSize(55.f);
 	Label->SetHorizontalAlignment(EHTA_Center);
 	Label->SetTextRenderColor(FColor::White);
 

@@ -243,13 +243,16 @@ def site(spec: TowerSpec):
     # site hut + welfare cabin outside the south-west corner
     out.append(Box("SiteHut", -8, 4, 1.4, 6, 2.5, 2.8, ("Hut", "Open"), "Cabin"))
     out.append(Box("SiteHut2", -8, 8, 1.4, 6, 2.5, 2.8, ("Hut", "Open"), "Cabin"))
-    # tower crane east of the building: mast, jib, counter-jib
-    h = spec.num_floors * spec.floor_height + 18
-    cx, cy = spec.building_x + 12, spec.building_y / 2
+    # tower crane behind the building (north side) so it reads over the roofline from the cutaway camera
+    h = spec.num_floors * spec.floor_height + 14
+    cx, cy = spec.building_x * 0.72, spec.building_y + 9
     out.append(Box("CraneMast", cx, cy, h / 2, 1.8, 1.8, h, ("Crane", "Open"), "Steel"))
-    out.append(Box("CraneJib", cx - 22, cy, h + 1, 48, 1.2, 1.4, ("Crane", "Open"), "Steel"))
-    out.append(Box("CraneCounter", cx + 8, cy, h + 1, 12, 1.2, 1.4, ("Crane", "Open"), "Steel"))
+    out.append(Box("CraneJib", cx - 16, cy, h + 1, 46, 1.2, 1.4, ("Crane", "Open"), "Steel"))
+    out.append(Box("CraneCounter", cx + 9, cy, h + 1, 12, 1.2, 1.4, ("Crane", "Open"), "Steel"))
     out.append(Box("CraneCab", cx, cy - 1.6, h - 1, 2.4, 1.6, 2.2, ("Crane", "Open"), "Cabin"))
+    # hook block hanging from the jib
+    out.append(Box("CraneHook", cx - 30, cy, h - 12, 0.6, 0.6, 1.2, ("Crane", "Open"), "Steel"))
+    out.append(Box("CraneCable", cx - 30, cy, h - 5.5, 0.05, 0.05, 11, ("Crane", "Open"), "Steel"))
     # skip and a couple of parked vans
     out.append(Box("Skip", spec.building_x + 4, 2, 0.7, 3.6, 1.8, 1.4, ("Clutter", "Open"), "Steel"))
     out.append(Box("Van1", -6, -6, 1.0, 5.2, 2.0, 2.0, ("Clutter", "Open"), "Cabin"))
