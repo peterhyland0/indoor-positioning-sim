@@ -35,39 +35,42 @@ Docs: [`docs/unreal-sim.md`](docs/unreal-sim.md) · [`docs/estimator.md`](docs/e
 
 ## Results
 
-`npm run score -- sessions/*.jsonl` on the four canonical 15-minute recordings (seed 42, 4 workers each,
-$45/h). Hoist rides are excluded from the payroll numbers; "punches" counts every clock-in and clock-out.
+`npm run score -- sessions/*.jsonl` on the four canonical 15-minute recordings (seed 42, 7–9 workers each
+across trades, two hoists, columns and fit-out drywall on the lower floors, $45/h). Hoist rides are excluded
+from the payroll numbers; "punches" counts every clock-in and clock-out; a "spurious" punch is one fired
+during or just after a ride to a floor that is neither where the ride started nor where it ended.
 
 | Session | Estimator | Floor accuracy (stationary) | Punches | Spurious / hoist ride | Clock-in on right floor | Lobby min billed | Payroll misattributed |
 |---|---|---|---|---|---|---|---|
-| honest | Site GPS | 87.8% | 4 | 0.00 | 0.0% | 6.3 | $4.70 |
-| honest | Nearest beacon | 79.8% | 1354 | 43.69 | 58.6% | 0.1 | $2.39 |
-| honest | Smoothed beacons | 86.2% | 32 | 0.77 | 55.6% | 1.4 | $6.46 |
-| honest | **Fused** (proposed) | 95.0% | 20 | 0.23 | 91.7% | 1.2 | $2.02 |
-| lobby-cheat | Site GPS | 51.1% | 4 | 0.00 | 0.0% | 24.7 | $18.51 |
-| lobby-cheat | Nearest beacon | 92.8% | 917 | 35.11 | 62.0% | 0.4 | $1.62 |
-| lobby-cheat | Smoothed beacons | 97.3% | 20 | 0.44 | 75.0% | 1.0 | $3.32 |
-| lobby-cheat | **Fused** (proposed) | 97.1% | 14 | 0.11 | 100.0% | 1.0 | $1.84 |
-| beacon-failure | Site GPS | 87.8% | 4 | 0.00 | 0.0% | 6.4 | $4.77 |
-| beacon-failure | Nearest beacon | 70.1% | 1452 | 45.92 | 55.1% | 0.2 | $3.32 |
-| beacon-failure | Smoothed beacons | 83.9% | 38 | 0.77 | 57.1% | 1.5 | $7.46 |
-| beacon-failure | **Fused** (proposed) | 94.9% | 20 | 0.23 | 91.7% | 1.3 | $2.11 |
-| phones-and-weather | Site GPS | 33.9% | 4 | 0.00 | 0.0% | 5.8 | $15.55 |
-| phones-and-weather | Nearest beacon | 90.4% | 564 | 20.00 | 72.2% | 0.0 | $1.49 |
-| phones-and-weather | Smoothed beacons | 87.1% | 30 | 0.45 | 76.5% | 0.8 | $7.30 |
-| phones-and-weather | **Fused** (proposed) | 89.5% | 28 | 0.27 | 87.5% | 0.8 | $5.55 |
+| honest | Site GPS | 70.5% | 9 | 0.00 | 0.0% | 31.7 | $23.79 |
+| honest | Nearest beacon | 84.4% | 2351 | 34.18 | 65.0% | 0.6 | $3.99 |
+| honest | Smoothed beacons | 94.8% | 75 | 0.73 | 69.0% | 6.3 | $11.53 |
+| honest | **Fused** (proposed) | 96.3% | 59 | 0.23 | 88.2% | 4.9 | $8.19 |
+| lobby-cheat | Site GPS | 49.3% | 8 | 0.00 | 0.0% | 51.0 | $38.25 |
+| lobby-cheat | Nearest beacon | 93.2% | 1497 | 29.76 | 69.5% | 0.4 | $1.79 |
+| lobby-cheat | Smoothed beacons | 97.4% | 48 | 0.18 | 85.7% | 3.2 | $7.75 |
+| lobby-cheat | **Fused** (proposed) | 97.1% | 40 | 0.00 | 100.0% | 3.4 | $6.39 |
+| beacon-failure | Site GPS | 72.7% | 9 | 0.00 | 0.0% | 30.3 | $22.76 |
+| beacon-failure | Nearest beacon | 83.5% | 2455 | 32.59 | 64.2% | 0.3 | $4.87 |
+| beacon-failure | Smoothed beacons | 94.5% | 75 | 0.68 | 71.4% | 6.0 | $11.99 |
+| beacon-failure | **Fused** (proposed) | 96.3% | 57 | 0.23 | 87.9% | 4.9 | $8.16 |
+| phones-and-weather | Site GPS | 47.7% | 7 | 0.00 | 0.0% | 17.7 | $24.49 |
+| phones-and-weather | Nearest beacon | 87.7% | 1017 | 17.63 | 78.5% | 0.4 | $1.89 |
+| phones-and-weather | Smoothed beacons | 91.5% | 53 | 0.32 | 80.0% | 3.2 | $11.03 |
+| phones-and-weather | **Fused** (proposed) | 93.5% | 47 | 0.11 | 92.6% | 2.8 | $8.69 |
 
 What the table says, in Ralco's terms:
 
-- **A site-level geofence (what GPS gives you) bills the lobby.** In `lobby-cheat` it credits 24.7 lobby
-  minutes to the work floor — the "clocked in from the lobby, fourteen floors below" story, $18.51 per 4
-  workers per 15 minutes. Any floor-aware estimator brings that to ≈1 minute.
-- **Nearest-beacon (beacon-per-floor as shipped) can't survive the hoist.** 1,354 punches in 15 minutes and
-  ~44 spurious punches per hoist ride: the log is unusable even though its dollar figure looks fine.
-- **Fused is the one you'd ship.** Best stationary floor accuracy everywhere (95–97%), 0.1–0.3 spurious
-  punches per ride, 88–100% of clock-ins on the right floor, and it holds 95% accuracy through a dead
+- **A site-level geofence (what GPS gives you) bills the lobby.** Workers queue for the hoist, loiter,
+  and in `lobby-cheat` two of them deliberately hang about: 30–50 lobby minutes per 15-minute window are
+  credited to a work floor — $24–38 for one small crew. Any floor-aware estimator brings that to a few
+  minutes, and those minutes are the exit-dwell after stepping off the hoist, not loitering.
+- **Nearest-beacon (beacon-per-floor as shipped) can't survive the hoist.** 1,000–2,500 punches in 15
+  minutes and 18–34 spurious punches per ride: the log is unusable even though its dollar figure looks fine.
+- **Fused is the one you'd ship.** Best stationary floor accuracy everywhere (93–97%), 0–0.23 spurious
+  punches per ride, 88–100% of clock-ins on the right floor, and it holds 96% accuracy through a dead
   beacon and a moved one (`beacon-failure`) because the barometer carries the floor. Its remaining cost is
-  the ~10 s it takes to settle after stepping off the hoist plus deliberate dwell before punching.
+  the ~10 s to settle after a ride plus the deliberate dwell before punching.
 
 ## Quick start
 

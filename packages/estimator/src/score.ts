@@ -21,7 +21,7 @@ export interface Metrics {
   /** share of clock-in punches whose floor was the true floor at punch time */
   punchAccuracy: number;
   hoistRides: number;
-  /** punches during a ride or within 10 s after it, to a floor other than the destination, per ride */
+  /** punches during a ride or within 10 s after it to a floor that is neither the ride's origin (clock-out) nor destination, per ride */
   spuriousPerHoistRide: number;
   /** median seconds from ride end to first correct estimate; null if no rides */
   timeToCorrectSec: number | null;
@@ -70,22 +70,26 @@ export function score(estimator: string, ticks: Tick[], punches: Punch[], opts: 
     const wp = punchesByWorker.get(worker) ?? [];
 
     // Hoist rides from truth: rising/falling edges of onHoist.
-    const rideList: { start: number; end: number; dest: number }[] = [];
+    const rideList: { start: number; end: number; origin: number; dest: number }[] = [];
     let rideStart: number | null = null;
+    let rideOrigin = 0;
     for (let i = 0; i < arr.length; i++) {
       const tk = arr[i]!;
-      if (tk.scan.truth.onHoist && rideStart === null) rideStart = tk.scan.t;
+      if (tk.scan.truth.onHoist && rideStart === null) { rideStart = tk.scan.t; rideOrigin = i > 0 ? arr[i - 1]!.scan.truth.floor : tk.scan.truth.floor; }
       if (!tk.scan.truth.onHoist && rideStart !== null) {
-        rideList.push({ start: rideStart, end: tk.scan.t, dest: tk.scan.truth.floor });
+        rideList.push({ start: rideStart, end: tk.scan.t, origin: rideOrigin, dest: tk.scan.truth.floor });
         rideStart = null;
       }
     }
     rides += rideList.length;
 
     for (const r of rideList) {
-      // spurious punches: during the ride or shortly after, not to the destination
+      // spurious punches: during the ride or shortly after, to a floor that is neither where the ride
+      // started (a legitimate clock-out) nor where it ends (a legitimate clock-in)
       for (const p of wp) {
-        if (p.t >= r.start && p.t <= r.end + opts.postRideGraceSec && p.floor !== r.dest) spurious++;
+        if (p.t < r.start || p.t > r.end + opts.postRideGraceSec) continue;
+        const legit = p.kind === 'out' ? (p.floor === r.origin || p.floor === r.dest) : p.floor === r.dest;
+        if (!legit) spurious++;
       }
       // time to correct after the ride
       const after = arr.find((tk) => tk.scan.t >= r.end && tk.est.floor === tk.scan.truth.floor);

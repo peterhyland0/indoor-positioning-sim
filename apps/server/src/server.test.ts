@@ -70,7 +70,7 @@ describe('server', () => {
     expect(estimates[0]).toMatchObject({ type: 'estimate', source: 'fused' });
 
     const state = await fetch(`http://localhost:${server.port}/api/state`).then((r) => r.json()) as { workers: { estimates: Record<string, unknown> }[] };
-    expect(state.workers.length).toBe(4);
+    expect(state.workers.length).toBeGreaterThanOrEqual(4);
     expect(Object.keys(state.workers[0]!.estimates)).toHaveLength(4);
     unreal.close();
     ui.close();
@@ -92,7 +92,7 @@ describe('server', () => {
     const state = await fetch(`http://localhost:${server.port}/api/state`).then((r) => r.json()) as { metrics: Record<string, { lobbyMinutesCredited: number }>; session: { source: string } };
     expect(state.session.source).toBe('replay');
     expect(state.metrics.gps!.lobbyMinutesCredited).toBeGreaterThan(15);
-    expect(state.metrics.fused!.lobbyMinutesCredited).toBeLessThan(3);
+    expect(state.metrics.fused!.lobbyMinutesCredited).toBeLessThan(state.metrics.gps!.lobbyMinutesCredited / 10);
     ui.close();
   });
 

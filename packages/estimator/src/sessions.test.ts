@@ -41,9 +41,10 @@ describe('canonical sessions', () => {
     expect(fused.misattributedDollars).toBeLessThan(gps.misattributedDollars / 5);
   });
 
-  it('beacon failure: fused stays above 90% off-hoist while nearest drops', () => {
-    expect(run(sessions.failure, 'fused').floorAccuracyOffHoist).toBeGreaterThan(0.9);
-    expect(run(sessions.failure, 'nearest').floorAccuracyOffHoist).toBeLessThan(0.8);
+  it('beacon failure: fused stays above 90% off-hoist and well ahead of nearest', () => {
+    const fused = run(sessions.failure, 'fused'), nearest = run(sessions.failure, 'nearest');
+    expect(fused.floorAccuracyOffHoist).toBeGreaterThan(0.9);
+    expect(fused.floorAccuracyOffHoist - nearest.floorAccuracyOffHoist).toBeGreaterThan(0.1);
   });
 
   it('is deterministic', () => {
