@@ -140,7 +140,10 @@ export async function startServer(cfg: Config, log: (msg: string) => void = cons
     });
   });
 
-  await new Promise<void>((ok) => http.listen(cfg.port, ok));
+  await new Promise<void>((ok, err) => {
+    http.once('error', (e: NodeJS.ErrnoException) => err(e.code === 'EADDRINUSE' ? new Error(`port ${cfg.port} is already in use - is another \`npm run server\` running?`) : e));
+    http.listen(cfg.port, ok);
+  });
   const addr = http.address();
   const port = typeof addr === 'object' && addr ? addr.port : cfg.port;
   log(`server: ws://localhost:${port}/ (Unreal)  ws://localhost:${port}/ui (dashboard)  http://localhost:${port}/api/health`);

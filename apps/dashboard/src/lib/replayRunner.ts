@@ -79,6 +79,7 @@ export class ReplayRunner {
       if (typeof b === 'string' && beaconState[b]) {
         if (e.name === 'beaconKilled') beaconState[b] = { ...beaconState[b]!, alive: false };
         if (e.name === 'beaconRevived') beaconState[b] = { ...beaconState[b]!, alive: true };
+        if (e.name === 'beaconBattery' && typeof e.payload['battery'] === 'number') beaconState[b] = { ...beaconState[b]!, battery: e.payload['battery'] };
       }
     }
     return { ...this.base, t, workers: [...workers.values()], punches: punches.slice(-500), events: events.slice(-200), timeline, beaconState, metrics: this.metricsAt(n) };

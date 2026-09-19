@@ -238,7 +238,8 @@ void ASimHUD::DrawHUD()
 		}
 		Line(FString::Printf(TEXT("  last scan: %s"), Scans.IsEmpty() ? TEXT("(nothing heard)") : *Scans));
 	}
-	Line(TEXT("Space pause   R reset   T traces   Tab next worker   1 cutaway   2 free cam   3 follow   P panel"), FColor(160, 160, 160));
+	// Key hints along the bottom edge so they never sit over the tower.
+	DrawText(TEXT("Space pause   R reset   T traces   Tab next worker   1 cutaway   2 free cam   3 follow   P panel"), FColor(200, 200, 200), 20.f, Canvas->SizeY - 28.f, Font, 1.0f);
 }
 
 // ---------------------------------------------------------------- game mode

@@ -11,7 +11,7 @@ try {
   }
 } catch { /* no .env */ }
 
-const server = await startServer(loadConfig());
+const server = await startServer(loadConfig()).catch((e: Error) => { console.error(e.message); process.exit(1); });
 const shutdown = () => { void server.close().then(() => process.exit(0)); };
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);

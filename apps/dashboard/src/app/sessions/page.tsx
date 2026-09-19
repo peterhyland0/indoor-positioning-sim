@@ -13,7 +13,10 @@ export default function SessionsPage() {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    void fetch(`${SERVER_URL}/api/sessions`).then((r) => r.json()).then((r: Row[]) => setRows(r)).catch((e: Error) => setError(e.message));
+    void fetch(`${SERVER_URL}/api/sessions`)
+      .then(async (r) => { if (!r.ok) throw new Error(`server returned ${r.status}`); return (await r.json()) as Row[]; })
+      .then(setRows)
+      .catch((e: Error) => setError(e.message));
   }, []);
   if (error) return <Alert severity="warning">Could not reach the server at <code>{SERVER_URL}</code> ({error}). History needs <code>npm run server</code> with <code>DATABASE_URL</code> set.</Alert>;
   if (!rows) return <Typography color="text.secondary">Loading…</Typography>;

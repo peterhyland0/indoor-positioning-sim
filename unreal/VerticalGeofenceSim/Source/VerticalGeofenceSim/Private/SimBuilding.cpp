@@ -57,6 +57,11 @@ void ASimBuilding::BeginPlay()
 	Config = S->GetConfig();
 
 	// Headless / scripted runs: -SimSeed=N reseeds, -SimRunSeconds=N quits after that much sim time.
+	FString BridgeUrl;
+	if (FParse::Value(FCommandLine::Get(), TEXT("SimBridgeUrl="), BridgeUrl) && !BridgeUrl.IsEmpty())
+	{
+		Config->BridgeUrl = BridgeUrl; // e.g. -SimBridgeUrl=ws://192.168.1.20:8080
+	}
 	int32 SeedOverride = 0;
 	if (FParse::Value(FCommandLine::Get(), TEXT("SimSeed="), SeedOverride))
 	{

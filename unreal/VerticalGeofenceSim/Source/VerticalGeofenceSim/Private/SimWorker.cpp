@@ -94,6 +94,9 @@ void ASimWorker::InitFromShift(const FShiftRow& Row, ASimBuilding* InBuilding, A
 	SetActorLabel(FString::Printf(TEXT("Worker_%s"), *WorkerId.ToString()));
 #endif
 	TruthFloor = 0;
+	// Stagger label heights per worker so two people standing together don't overprint.
+	const int32 Idx = FCString::Atoi(*WorkerId.ToString().Replace(TEXT("w"), TEXT("")));
+	Label->SetRelativeLocation(FVector((Idx % 2 ? 35.f : -35.f), -40.f, CapsuleHalfHeightCm + 45.f + (Idx % 4) * 28.f));
 	RefreshLabel();
 }
 

@@ -6,8 +6,8 @@ import { ReplayRunner } from '@/lib/replayRunner';
 import { Board } from '@/components/Board';
 
 const DESCRIPTIONS: Record<string, string> = {
-  'honest.jsonl': 'Four honest workers: up the hoist, work, back down. Baseline.',
-  'lobby-cheat.jsonl': 'Two workers clock in and loiter in the lobby for 10 minutes before going up. Watch "Lobby minutes billed" for Site GPS.',
+  'honest.jsonl': 'Nine honest workers across six trades: up one of the two hoists, work their floor, back down. Baseline.',
+  'lobby-cheat.jsonl': 'Three workers clock in and loiter in the lobby for 10 minutes before going up, alongside an honest crew. Watch "Lobby minutes billed" for Site GPS.',
   'beacon-failure.jsonl': 'F12-A runs low, dies at 5:00, F12-B is kicked 8 m at 7:00, F12-A is revived at 10:00. Fused holds; Nearest does not.',
   'phones-and-weather.jsonl': 'Pocket, app in background, a pressure storm, a door slam on F12, and two workers hopping floors by the stairs.',
 };

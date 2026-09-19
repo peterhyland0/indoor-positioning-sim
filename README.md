@@ -62,12 +62,12 @@ during or just after a ride to a floor that is neither where the ride started no
 What the table says, in Ralco's terms:
 
 - **A site-level geofence (what GPS gives you) bills the lobby.** Workers queue for the hoist, loiter,
-  and in `lobby-cheat` two of them deliberately hang about: 30–50 lobby minutes per 15-minute window are
+  and in `lobby-cheat` three of them deliberately hang about: 30–50 lobby minutes per 15-minute window are
   credited to a work floor — $24–38 for one small crew. Any floor-aware estimator brings that to a few
   minutes, and those minutes are the exit-dwell after stepping off the hoist, not loitering.
 - **Nearest-beacon (beacon-per-floor as shipped) can't survive the hoist.** 1,000–2,500 punches in 15
   minutes and 18–34 spurious punches per ride: the log is unusable even though its dollar figure looks fine.
-- **Fused is the one you'd ship.** Best stationary floor accuracy everywhere (93–97%), 0–0.23 spurious
+- **Fused is the one you'd ship.** Best or within a fraction of a point of the best stationary floor accuracy everywhere (93–97%), 0–0.23 spurious
   punches per ride, 88–100% of clock-ins on the right floor, and it holds 96% accuracy through a dead
   beacon and a moved one (`beacon-failure`) because the barometer carries the floor. Its remaining cost is
   the ~10 s to settle after a ride plus the deliberate dwell before punching.

@@ -18,3 +18,4 @@ apps/*/.env
 .env
 unreal/VerticalGeofenceSim/MyProject/
 unreal/VerticalGeofenceSim/Data/asset_overrides.json
+*.tsbuildinfo

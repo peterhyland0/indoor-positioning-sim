@@ -193,7 +193,7 @@ def spawn_box(box: tg.Box, mesh, mat, profile="RadioBlocker", folder="Tower"):
     return actor
 
 
-def spawn_text(text, pos_m, size=120.0, folder="Tower/Labels", color=(1, 1, 1)):
+def spawn_text(text, pos_m, size=150.0, folder="Tower/Labels", color=(1, 1, 1)):
     loc = unreal.Vector(pos_m[0] * M_TO_CM, pos_m[1] * M_TO_CM, pos_m[2] * M_TO_CM)
     actor = actor_ss.spawn_actor_from_class(unreal.TextRenderActor, loc, unreal.Rotator(roll=0, pitch=0, yaw=-90))
     actor.set_actor_label(f"Label_{text}")

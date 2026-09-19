@@ -46,7 +46,7 @@ pressure in hPa, RSSI in dBm.
 {"v":1,"type":"event","t":900.0,"name":"beaconKilled","payload":{"b":"F12-A"}}
 ```
 
-`name` values: `beaconKilled`, `beaconRevived`, `beaconLowBattery`, `beaconMoved`
+`name` values: `beaconKilled`, `beaconRevived`, `beaconBattery` (`payload: {b, battery}`), `beaconMoved`
 (`payload: {b, x, y, z}`), `stormStart`, `stormStop`, `gust` (`payload: {floor}`),
 `workerPhoneState` (`payload: {worker, phoneState}`), `workerAppState`
 (`payload: {worker, appState}`), `paused`, `resumed`, `reset`.
