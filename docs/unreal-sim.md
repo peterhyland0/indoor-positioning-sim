@@ -28,7 +28,7 @@ Edit the CSV, rerun `Scripts/bootstrap.py`. Row structs are in `SimTypes.h`; col
 
 - `DT_BeaconLayout` — id, floor, x, y (metres, building-local), tx power, interval, battery, alive
 - `DT_Shifts` — worker id, platform, phone state, app state, route, target floor, start offset
-- `DT_Routes` — ordered segments per route (`Honest`, `LobbyCheat`, `FloorHopper`)
+- `DT_Routes` — ordered segments per route: generic `Honest`, `LobbyCheat`, `FloorHopper`, and one per trade — `Electrician` (long stationary spells on one floor), `Ironworker` (patrols the slab edges), `Plumber` (core riser, stairs to the floor above and back), `Carpenter` (fit-out with material runs to the lobby store), `Labourer` (never still: hoist and stairs between store, floor and floor above), `Supervisor` (tours three floors, coffee between rounds). `BoardHoist` accepts `Target`, `Target+1`, `Target-1` or a floor number.
 - `DT_Waypoints` — named floor-local XY (`LobbyEntrance`, `LobbyHoistDoor`, `FloorWorkArea`, …)
 - `DT_Materials`, `DT_SimConfigDefaults` — reference only (live values are on `USimConfig` / `DA_SimConfig`)
 
@@ -70,6 +70,7 @@ P=unreal/VerticalGeofenceSim/VerticalGeofenceSim.uproject
 | `-SimSpeed=N` | fast-forward: N fixed steps per timer tick; output is byte-identical to real time |
 | `-SimShotAt=N` | save `Saved/Screenshots/MacEditor/sim_shot.png` at sim time N (use `-windowed`, not `-nullrhi`) |
 | `-SimCamera=follow` | start on the follow camera |
+| `-SimCamPos=x,y,z -SimCamLook=x,y,z` | fixed camera, metres building-local (for stills and clips) |
 | `-SimBridgeUrl=ws://host:port` | override the estimator server address (default `ws://localhost:8080`) |
 
 Recordings land in `unreal/VerticalGeofenceSim/Saved/Sessions/<seed>-<timestamp>.jsonl`; copy the

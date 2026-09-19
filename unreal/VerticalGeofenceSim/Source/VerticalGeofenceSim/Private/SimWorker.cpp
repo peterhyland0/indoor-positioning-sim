@@ -188,7 +188,17 @@ void ASimWorker::NextSegment(USimConfig* Config)
 		break;
 	case ERouteSegment::BoardHoist:
 	{
-		const int32 Floor = Seg.Param.Equals(TEXT("Target"), ESearchCase::IgnoreCase) ? TargetFloor : FCString::Atoi(*Seg.Param);
+		// "Target", "Target+1", "Target-2" or an absolute floor number.
+		int32 Floor;
+		if (Seg.Param.StartsWith(TEXT("Target"), ESearchCase::IgnoreCase))
+		{
+			Floor = TargetFloor + FCString::Atoi(*Seg.Param.Mid(6));
+		}
+		else
+		{
+			Floor = FCString::Atoi(*Seg.Param);
+		}
+		Floor = FMath::Clamp(Floor, 0, Config->NumFloors);
 		Mode = EWorkerMode::WaitingHoist;
 		if (Hoist)
 		{

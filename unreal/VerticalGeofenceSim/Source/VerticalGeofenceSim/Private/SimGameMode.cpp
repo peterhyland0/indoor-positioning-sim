@@ -61,8 +61,17 @@ void ASimPlayerController::BeginPlay()
 			if (Parts.Num() >= 3) ClipFps = FMath::Clamp(FCString::Atof(*Parts[2]), 1.f, 60.f);
 		}
 	}
-	FString Cam;
-	if (FParse::Value(FCommandLine::Get(), TEXT("SimCamera="), Cam) && Cam.Equals(TEXT("follow"), ESearchCase::IgnoreCase))
+	FString Cam, Pos, Look;
+	if (FParse::Value(FCommandLine::Get(), TEXT("SimCamPos="), Pos) && FParse::Value(FCommandLine::Get(), TEXT("SimCamLook="), Look))
+	{
+		// Fixed shot: -SimCamPos=x,y,z -SimCamLook=x,y,z in metres (building-local).
+		auto ParseV = [](const FString& S) { TArray<FString> P; S.ParseIntoArray(P, TEXT(",")); return P.Num() == 3 ? FVector(FCString::Atof(*P[0]), FCString::Atof(*P[1]), FCString::Atof(*P[2])) * 100.f : FVector::ZeroVector; };
+		const FVector L = ParseV(Pos), T = ParseV(Look);
+		ACameraActor* Fixed = GetWorld()->SpawnActor<ACameraActor>(L, FRotationMatrix::MakeFromX(T - L).Rotator());
+		Fixed->GetCameraComponent()->SetFieldOfView(60.f);
+		SetViewTarget(Fixed);
+	}
+	else if (FParse::Value(FCommandLine::Get(), TEXT("SimCamera="), Cam) && Cam.Equals(TEXT("follow"), ESearchCase::IgnoreCase))
 	{
 		UseFollowCamera();
 	}

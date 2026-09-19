@@ -10,7 +10,9 @@ Running list for conversations about the project. Add to it as things come up.
   a welder can legitimately stand in one spot for a long time, a labourer moves constantly. Today the
   punch engine uses one `enterDwellSec` / `exitDwellSec` for everyone (`packages/estimator/src/punch.ts`);
   a per-worker (or per-trade) `PunchParams` keyed off the shift would let "stationary for 20 min" mean
-  "working" for one trade and "phone left on a bench" for another.
+  "working" for one trade and "phone left on a bench" for another. (Update 19 Sep: workers now *move* by
+  trade — `DT_Routes.csv` has Electrician/Ironworker/Plumber/Carpenter/Labourer/Supervisor routes — so
+  the punch rules are the remaining half.)
 
 ### Questions
 

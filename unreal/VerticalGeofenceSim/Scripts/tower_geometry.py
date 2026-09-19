@@ -231,7 +231,8 @@ def site(spec: TowerSpec):
     """Everything outside the building footprint: ground, perimeter fence, site hut, tower crane."""
     out = []
     g = 40.0
-    out.append(Box("Ground", spec.building_x / 2, spec.building_y / 2, -0.15, spec.building_x + 2 * g, spec.building_y + 2 * g, 0.3, ("Ground", "Open"), "Gravel"))
+    # Ground top sits 6 cm below the lobby slab's top (z = 0) so the two surfaces never z-fight.
+    out.append(Box("Ground", spec.building_x / 2, spec.building_y / 2, -0.21, spec.building_x + 2 * g, spec.building_y + 2 * g, 0.3, ("Ground", "Open"), "Gravel"))
     # hoarding fence around the site (2.4 m high), gate gap on the south side near the entrance
     fx0, fy0 = -g + 6, -g + 6
     fx1, fy1 = spec.building_x + g - 6, spec.building_y + g - 6

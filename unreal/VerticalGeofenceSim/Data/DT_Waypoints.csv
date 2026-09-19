@@ -1,7 +1,14 @@
 ---,Name,X,Y
 LobbyEntrance,LobbyEntrance,2.0,18.0
 LobbyCoffee,LobbyCoffee,26.0,17.0
+LobbyStore,LobbyStore,27.0,3.0
 LobbyHoistDoor,LobbyHoistDoor,13.0,9.5
 FloorHoistDoor,FloorHoistDoor,13.0,9.5
 FloorWorkArea,FloorWorkArea,24.0,6.0
+FloorWorkArea2,FloorWorkArea2,6.0,8.0
+FloorCore,FloorCore,19.0,13.5
+FloorRiser,FloorRiser,10.0,13.0
+FloorEdgeNorth,FloorEdgeNorth,15.0,18.5
+FloorEdgeEast,FloorEdgeEast,28.5,15.0
+FloorEdgeWest,FloorEdgeWest,1.5,12.0
 FloorStairDoor,FloorStairDoor,3.5,3.0
